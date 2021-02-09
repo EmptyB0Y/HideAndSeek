@@ -94,7 +94,7 @@ public final class HideAndSeek extends JavaPlugin {
                 }
                 //INITALIZE GAME
                 cleanGames();
-                int game = countGames()+1;
+                int game = countGames();
                 if(game <= MAXSIZE){
                     games[game] = new Game(t1, t2, 1, (Player) sender, this);
                     sender.sendMessage("You initalized game n° " + game + " !\n");

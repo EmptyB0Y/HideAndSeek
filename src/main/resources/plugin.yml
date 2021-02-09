@@ -1,0 +1,23 @@
+name: HideAndSeek
+version: ${project.version}
+main: com.redsifter.hideandseek.HideAndSeek
+api-version: 1.16
+commands:
+  hssetgame:
+    description: Set a new game
+    usage : /hssetgame [player1,player2,player3] [player1,player2...]
+  hsjoin:
+    description: Join a game
+    usage : /hsjoin <(h | s)> [n°]
+  hsleave:
+    description: Leave current game
+    usage : /hsleave"
+  hsstartgame:
+    description: Start a game you previously set
+    usage : /hsstartgame <time>"
+  hslistgames:
+    description: List available games
+    usage : /hslistgames"
+  hscancelgame:
+    description: Cancel currently owned game
+    usage: /hscancelgame <n°>

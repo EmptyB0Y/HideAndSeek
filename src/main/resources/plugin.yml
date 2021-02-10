@@ -11,13 +11,13 @@ commands:
     usage : /hsjoin <(h | s)> [n°]
   hsleave:
     description: Leave current game
-    usage : /hsleave"
+    usage : /hsleave
   hsstartgame:
     description: Start a game you previously set
-    usage : /hsstartgame <time>"
+    usage : /hsstartgame <n°> <time>
   hslistgames:
     description: List available games
-    usage : /hslistgames"
+    usage : /hslistgames
   hscancelgame:
     description: Cancel currently owned game
     usage: /hscancelgame <n°>

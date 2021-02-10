@@ -36,6 +36,10 @@ public final class HideAndSeek extends JavaPlugin {
                     sender.sendMessage("Too much arguments...\n");
                     return false;
                 }
+                if(countGames() == MAXSIZE){
+                    sender.sendMessage("Too much games started at this time...\n");
+                    return false;
+                }
                 //ADD TEAMS
                 Team t1 = new Team(1,"hiders");
                 Team t2 = new Team(2,"seekers");
@@ -93,14 +97,12 @@ public final class HideAndSeek extends JavaPlugin {
                     }
                 }
                 //INITALIZE GAME
-                cleanGames();
-                int game = countGames();
-                if(game <= MAXSIZE){
-                    games[game] = new Game(t1, t2, 1, (Player) sender, this);
-                    sender.sendMessage("You initalized game n° " + game + " !\n");
-                }else{
-                    sender.sendMessage("Too much games started at this time...\n");
+                int game = 0;
+                if(countGames() > 0){
+                    game = countGames()+1;
                 }
+                games[game] = new Game(t1, t2, countGames()+1, (Player) sender, this);
+                sender.sendMessage("You initalized game n° " + countGames() + " !\n");
             }
             else if(label.equals("hsjoin")) {
                 if (args.length < 1) {
@@ -233,7 +235,7 @@ public final class HideAndSeek extends JavaPlugin {
         return true;
     }
 
-    public boolean playerInGame(Player pl){
+    public static boolean playerInGame(Player pl){
         for(Game g : games){
             if(g != null) {
                 if (g.t1.players.contains(pl) || g.t2.players.contains(pl)) {
@@ -251,6 +253,7 @@ public final class HideAndSeek extends JavaPlugin {
                 count++;
             }
         }
+        System.out.println(count);
         return count;
     }
 
@@ -258,19 +261,10 @@ public final class HideAndSeek extends JavaPlugin {
         if(games[nb-1] != null){
             if(!games[nb-1].isCancelled()){
                 games[nb-1].cancel();
-                cleanGames();
-            }
-        }
-    }
-
-    public void cleanGames(){
-        for(Game g : games) {
-            if(g != null) {
-                if (g.isCancelled()) {
-                    g = null;
-                    ArrayUtils.removeElement(games, g);
-
-                }
+                games[nb-1].t1.flush();
+                games[nb-1].t2.flush();
+                games[nb-1] = null;
+                ArrayUtils.removeElement(games, games[nb-1]);
             }
         }
     }

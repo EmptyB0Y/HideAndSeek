@@ -1,10 +1,12 @@
 package com.redsifter.hideandseek.utils;
 
+import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Team {
     public ArrayList<Player> players = new ArrayList<Player>();
@@ -12,6 +14,7 @@ public class Team {
     private int nb;
     public Channel ch;
     public String name;
+    public boolean full = false;
 
     public Team(int number,String nm){
         nb = number;
@@ -27,17 +30,31 @@ public class Team {
     }
 
     public void setPlayers(ArrayList<Player> lst){
-        for (int i = 0;i < lst.size();i++){
+        int iterator = 0;
+        if(lst.size() < HideAndSeek.MAXPLAYERS){
+            iterator = lst.size();
+        }
+        else{
+            iterator = HideAndSeek.MAXPLAYERS;
+        }
+        for (int i = 0;i < iterator;i++){
             players.add(lst.get(i));
             playernb++;
             ch.addPlayer(lst.get(i));
         }
     }
 
-    public void addPlayer(Player pl){
-        players.add(pl);
-        playernb++;
-        ch.addPlayer(pl);
+    public boolean addPlayer(Player pl){
+        if(!full) {
+            players.add(pl);
+            playernb++;
+            ch.addPlayer(pl);
+            if (playernb == HideAndSeek.MAXPLAYERS) {
+                full = true;
+            }
+            return true;
+        }
+        return false;
     }
 
     public void remPlayer(String pl){

@@ -5,6 +5,7 @@ import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.Team;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,7 +25,7 @@ public final class HideAndSeek extends JavaPlugin {
     public void onDisable() {
         System.out.println("Disabled HideAndSeek\n");
     }
-
+    public static int MAXPLAYERS = 10;
     public static int MAXSIZE = 3;
     public static Game[] games = new Game[MAXSIZE];
 
@@ -56,11 +57,12 @@ public final class HideAndSeek extends JavaPlugin {
                         str = "";
                         for (char t : destArray) {
                             if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str))) {
+                                if (!playerInGame(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str)) && i < MAXPLAYERS) {
                                     lst.add(Bukkit.getPlayerExact(str));
+                                    Bukkit.getPlayerExact(str).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
                                     str = "";
                                 } else {
-                                    sender.sendMessage(str + " is already in a game or offline!\n");
+                                    sender.sendMessage(str + " is either already in a game, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
                                     str = "";
                                 }
                             } else {
@@ -81,11 +83,11 @@ public final class HideAndSeek extends JavaPlugin {
                         str = "";
                         for (char t : destArray) {
                             if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str)) && !t1.players.contains(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str))) {
+                                if (!playerInGame(Bukkit.getPlayerExact(str)) && !t1.players.contains(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str)) && i < MAXPLAYERS) {
                                     lst.add(Bukkit.getPlayerExact(str));
                                     str = "";
                                 } else {
-                                    sender.sendMessage(str + " is already in a game, in the other team or offline\n");
+                                    sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
                                     str = "";
                                 }
                             } else {
@@ -115,7 +117,7 @@ public final class HideAndSeek extends JavaPlugin {
                         return false;
                     }
 
-                    if (games[Integer.parseInt(args[1])-1] != null && !games[Integer.parseInt(args[1])].hasStarted) {
+                    if (games[Integer.parseInt(args[1])-1] != null && !games[Integer.parseInt(args[1])].hasStarted && !games[Integer.parseInt(args[1])].full) {
                         if (args[0].equals("h")) {
                             if (games[Integer.parseInt(args[1])].addPlayer((Player) sender, "h")) {
                                 sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1])-1].nb + " as hider !\n");
@@ -128,7 +130,7 @@ public final class HideAndSeek extends JavaPlugin {
                             }
                         }
                     } else {
-                        sender.sendMessage("This game has already started or is not set !\n");
+                        sender.sendMessage(ChatColor.RED + "This game either has already started, is not set, or has no more room for you in the selected team !\n");
                         return false;
                     }
                 }
@@ -228,6 +230,10 @@ public final class HideAndSeek extends JavaPlugin {
                     sender.sendMessage("Usage : /hscancelgame <n°>\n");
                     return false;
                 }
+                if(games[Integer.parseInt(args[0])-1].owner != (Player)sender){
+                    sender.sendMessage("You are not the owner of this game...\n");
+                    return false;
+                }
                 sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0])-1].nb + " !\n");
                 cancelGame(games[Integer.parseInt(args[0])-1].nb);
             }
@@ -259,13 +265,14 @@ public final class HideAndSeek extends JavaPlugin {
 
     public void cancelGame(int nb){
         if(games[nb-1] != null){
-            if(!games[nb-1].isCancelled()){
-                games[nb-1].cancel();
-                games[nb-1].t1.flush();
-                games[nb-1].t2.flush();
-                games[nb-1] = null;
-                ArrayUtils.removeElement(games, games[nb-1]);
+            if(games[nb-1].hasStarted) {
+                games[nb - 1].cancel();
             }
+            games[nb-1].t1.flush();
+            games[nb-1].t2.flush();
+            games[nb-1] = null;
+            ArrayUtils.removeElement(games, games[nb-1]);
+
         }
     }
 }

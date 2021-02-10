@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.ArrayList;
 
@@ -35,8 +36,8 @@ public class Listen implements Listener {
 
     @EventHandler
     public void onHit(PlayerInteractEntityEvent event){
-        Player pl = event.getPlayer();
-        if(HideAndSeek.playerInGame(pl)){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            Player pl = event.getPlayer();
             //TEST INTERRACTION
             Player target = getNearestPlayerInSight(pl,5);
             if(seekerFind(pl,target)){

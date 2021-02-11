@@ -6,11 +6,13 @@ import com.redsifter.hideandseek.utils.Team;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public final class HideAndSeek extends JavaPlugin {
@@ -97,6 +99,9 @@ public final class HideAndSeek extends JavaPlugin {
                         }
                         t2.setPlayers(lst);
                     }
+                }
+                if(!areaAvailableFor(((Player) sender).getLocation(),(t2.players.size()+t1.players.size())*30,(Player)sender)){
+                    return false;
                 }
                 //INITALIZE GAME
                 int game = 0;
@@ -209,6 +214,10 @@ public final class HideAndSeek extends JavaPlugin {
                     sender.sendMessage("Missing arguments...\n");
                     return false;
                 }
+                else if(Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1200){
+                    sender.sendMessage("The time must be contained between 200 and 1200");
+                    return false;
+                }
                 if(countGames() >= 1) {
                     if (games[Integer.parseInt(args[0]) - 1].owner != (Player) sender) {
                         sender.sendMessage("You are not the owner of this game...\n");
@@ -236,6 +245,21 @@ public final class HideAndSeek extends JavaPlugin {
                 }
                 sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0])-1].nb + " !\n");
                 cancelGame(games[Integer.parseInt(args[0])-1].nb);
+            }
+        }
+        return true;
+    }
+
+    public boolean areaAvailableFor(Location l, int size, @Nullable Player p){
+        for(Game g : games) {
+            if(g != null) {
+                if (l.distance(g.zone) > size + g.SIZE) {
+                    return true;
+                }
+                else{
+                    p.sendMessage("There is no room for a game here ! Try to get a bit further from " + g.zone.getX() + " " + g.zone.getY() + " "  + g.zone.getZ());
+                    return false;
+                }
             }
         }
         return true;
@@ -270,6 +294,7 @@ public final class HideAndSeek extends JavaPlugin {
             }
             games[nb-1].t1.flush();
             games[nb-1].t2.flush();
+            games[nb-1].delScoreBoard();
             games[nb-1] = null;
             ArrayUtils.removeElement(games, games[nb-1]);
 

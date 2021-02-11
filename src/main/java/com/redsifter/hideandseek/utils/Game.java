@@ -1,15 +1,14 @@
 package com.redsifter.hideandseek.utils;
 
+
 import com.redsifter.hideandseek.HideAndSeek;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.entity.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.*;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class Game extends BukkitRunnable {
     public Team t1;
@@ -20,9 +19,15 @@ public class Game extends BukkitRunnable {
     private HideAndSeek main;
     public boolean hasStarted = false;
     public Player owner;
-    Location zone;
+    public Location zone;
     public boolean full = false;
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
+    public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
+    public int SIZE;
+    //SCOREBOARD
+    private ScoreboardManager manager = Bukkit.getScoreboardManager();
+    private Scoreboard board = manager.getMainScoreboard();
+    private Objective timer = board.registerNewObjective("timer"+nb, "test", "TIMER");
 
     public Game(Team team1, Team team2,int n,Player p,HideAndSeek hs){
         t1 = team1;
@@ -31,10 +36,11 @@ public class Game extends BukkitRunnable {
         owner = p;
         zone = p.getLocation();
         this.main = hs;
+        SIZE = ((t1.players.size() + t2.players.size())*30);
     }
 
     public void run(){
-        Bukkit.broadcastMessage(String.valueOf(time));
+        updateScoreBoard();
         pushBack(t1);
         pushBack(t2);
         if(time == timeset/2){
@@ -50,6 +56,9 @@ public class Game extends BukkitRunnable {
         else if(t1.players.isEmpty() && !t2.players.isEmpty()){
             seekersVictory();
         }
+        else if(t1.players.isEmpty() && t2.players.isEmpty() && time > 0){
+            main.cancelGame(nb);
+        }
         if(time == 0 && !t1.players.isEmpty()){
             hidersVictory();
         }
@@ -62,6 +71,13 @@ public class Game extends BukkitRunnable {
             this.timeset = timer;
             this.runTaskTimer((Plugin) this.main, 0L, 20L);
             this.hasStarted = true;
+            //setMysteryChests(true);
+            for(Player p : t1.players){
+                setScoreBoard(p);
+            }
+            for(Player p : t2.players){
+                setScoreBoard(p);
+            }
             return true;
         }
         return false;
@@ -119,6 +135,7 @@ public class Game extends BukkitRunnable {
         for(Player p : t1.players){
             announcement(ChatColor.DARK_GREEN + p.getName() + "\n");
         }
+        //setMysteryChests(false);
         main.cancelGame(nb);
     }
 
@@ -127,11 +144,12 @@ public class Game extends BukkitRunnable {
         for(Player p : t2.players){
             announcement(ChatColor.RED + p.getName() + "\n");
         }
+        //setMysteryChests(false);
         main.cancelGame(nb);
     }
     public void pushBack(Team t){
         for(Player p : t.players){
-            if(p.getLocation().distance(zone) >= (t1.players.size() + t2.players.size())*20){
+            if(p.getLocation().distance(zone) >= SIZE){
                 Location l = new Location(limit.get(p).getWorld(),limit.get(p).getX(),limit.get(p).getY(),limit.get(p).getZ(),p.getLocation().getYaw(),p.getLocation().getPitch());
                 p.teleport(l);
                 p.sendMessage(ChatColor.RED + "You went too far, stay in the game zone.\n");
@@ -141,9 +159,118 @@ public class Game extends BukkitRunnable {
                     limit.put(p,p.getLocation());
                 }
                 else{
-                    if(p.getLocation().distance(zone) < ((t1.players.size() + t2.players.size())*20)-10)
+                    if(p.getLocation().distance(zone) < SIZE -10)
                     limit.replace(p,p.getLocation());
                 }
+            }
+        }
+    }
+
+    public void setScoreBoard(Player p) {
+        this.timer.setDisplaySlot(DisplaySlot.SIDEBAR);
+        this.timer.setDisplayName(ChatColor.DARK_PURPLE + "H&S");
+        Score score = this.timer.getScore(ChatColor.DARK_GREEN + "TIMER");
+        score.setScore(this.time);
+        p.setScoreboard(this.board);
+    }
+
+    public void updateScoreBoard() {
+        for(Player p : t1.players) {
+            Score score = this.timer.getScore(ChatColor.DARK_GREEN + "TIMER");
+            score.setScore(this.time);
+            p.setScoreboard(this.board);
+        }
+        for(Player p : t2.players) {
+            Score score = this.timer.getScore(ChatColor.DARK_GREEN + "TIMER");
+            score.setScore(this.time);
+            p.setScoreboard(this.board);
+        }
+    }
+
+    public void delScoreBoard() {
+        this.timer.unregister();
+        this.board.clearSlot(DisplaySlot.SIDEBAR);
+    }
+
+    public void setMysteryChests(boolean set){
+        if(set){
+            Random rand = new Random();
+            char[] lst = new char[3];
+            int i = 0;
+            double rx = 0;
+            double ry = 0;
+            double rz = 0;
+            boolean keepOn = true;
+
+            for(int n = 0;n < SIZE/10;n++) {
+                do {
+                    while (i != 3) {
+                        double r = rand.nextDouble();
+                        if (r < 5) {
+                            lst[i] = '-';
+                            i++;
+                        } else if (r > 5) {
+                            lst[i] = '+';
+                            i++;
+                        } else {
+
+                        }
+                    }
+                    if (lst[0] == '+') {
+                        rx = zone.getX() + rand.nextDouble() * SIZE;
+                    } else {
+                        rx = zone.getX() - rand.nextDouble() * SIZE;
+                    }
+                    if (lst[1] == '+') {
+                        ry = zone.getY() + rand.nextDouble() * SIZE;
+                    } else {
+                        ry = zone.getY() - rand.nextDouble() * SIZE;
+                    }
+                    if (lst[2] == '+') {
+                        rz = zone.getZ() + rand.nextDouble() * SIZE;
+                    } else {
+                        rz = zone.getZ() - rand.nextDouble() * SIZE;
+                    }
+                    Location l = new Location(zone.getWorld(), rx, ry, rz);
+                    Location under = new Location(zone.getWorld(), rx, ry-1, rz);
+                    boolean valid = false;
+                    for (ArmorStand a : chests.keySet()) {
+                        if(l.distance(a.getLocation()) < SIZE / 10){
+                            valid = false;
+                            break;
+                        }
+                        else{
+                            valid = true;
+                        }
+                    }
+                    if(valid){
+                        if ((under.getBlock().getType() != Material.AIR && under.getBlock().getType() != Material.WATER) && l.getBlock().getType() == Material.AIR) {
+                            ArmorStand z = (ArmorStand)zone.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+                            z.setInvisible(true);
+                            z.setCustomNameVisible(true);
+                            z.setCustomName(ChatColor.GOLD + "[?]MYSTERY CHEST[?]");
+                            z.setInvulnerable(true);
+                            z.setSmall(true);
+                            chests.put(z,true);
+                            keepOn = false;
+                        }
+                    }
+                } while (keepOn);
+            }
+
+        }
+        else{
+            for(ArmorStand a: chests.keySet()){
+                a.setHealth(0);
+            }
+        }
+    }
+
+    public void useChest(Entity en){
+        if(en instanceof ArmorStand){
+            if(en.getName().equals("[?]MYSTERY CHEST[?]")){
+                chests.replace((ArmorStand) en,false);
+                ((ArmorStand) en).setHealth(0);
             }
         }
     }

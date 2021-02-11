@@ -6,13 +6,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.ArrayList;
 
@@ -40,18 +42,50 @@ public class Listen implements Listener {
             Player pl = event.getPlayer();
             //TEST INTERRACTION
             Player target = getNearestPlayerInSight(pl,5);
-            if(seekerFind(pl,target)){
-                pl.sendMessage(ChatColor.DARK_PURPLE + "You found " + target.getName() + " !\n");
-                target.sendMessage(ChatColor.RED + "You were found by " + pl.getName() + " !\n");
-                removeFromGame(pl);
+            if(target != null) {
+                if (seekerFind(pl, target)) {
+                    pl.sendMessage(ChatColor.DARK_PURPLE + "You found " + target.getName() + " !\n");
+                    target.sendMessage(ChatColor.RED + "You were found by " + pl.getName() + " !\n");
+                    removeFromGame(target);
+                }
+            }
+            /*else if(event.getRightClicked().getType() == EntityType.ARMOR_STAND){
+                Entity en = event.getRightClicked();
+                if(en.getName().equals("[?]MYSTERY CHEST[?]")){
+                    bonus(pl);
+                    useChest((ArmorStand)en);
+                }
+            }*/
+        }
+    }
+
+    @EventHandler
+    public void onDisconnect(PlayerQuitEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            removeFromGame(event.getPlayer());
+        }
+    }
+
+    public void useChest(ArmorStand en){
+        for(Game g : HideAndSeek.games){
+            if(g != null) {
+                if (g.chests.containsKey(en)) {
+                    g.useChest(en);
+                }
             }
         }
     }
 
+    public void bonus(Player p){
+
+    }
+
     public boolean seekerFind(Player p1, Player p2){
         for(Game g : HideAndSeek.games){
-            if((g.t2.players.contains(p1) && g.t1.players.contains(p2))){
-                return true;
+            if(g != null) {
+                if ((g.t2.players.contains(p1) && g.t1.players.contains(p2)) && g.hasStarted) {
+                    return true;
+                }
             }
         }
         return false;

@@ -1,18 +1,19 @@
 package com.redsifter.hideandseek.utils;
 
-
 import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
 import java.util.*;
 
 public class Game extends BukkitRunnable {
-    public Team t1;
-    public Team t2;
+    public CustomTeam t1;
+    public CustomTeam t2;
     public int nb;
     public int time;
     public int timeset;
@@ -26,10 +27,10 @@ public class Game extends BukkitRunnable {
     public int SIZE;
     //SCOREBOARD
     private ScoreboardManager manager = Bukkit.getScoreboardManager();
-    private Scoreboard board = manager.getMainScoreboard();
+    public Scoreboard board = manager.getMainScoreboard();
     private Objective timer = board.registerNewObjective("timer"+nb, "test", "TIMER");
-
-    public Game(Team team1, Team team2,int n,Player p,HideAndSeek hs){
+    private int cursor = 0;
+    public Game(CustomTeam team1, CustomTeam team2,int n,Player p,HideAndSeek hs){
         t1 = team1;
         t2 = team2;
         nb = n;
@@ -43,11 +44,19 @@ public class Game extends BukkitRunnable {
         updateScoreBoard();
         pushBack(t1);
         pushBack(t2);
+        cursor++;
+        if(cursor == 5){
+            playersLocations();
+            cursor = 0;
+        }
+        if(time == timeset - 60){
+            announcement(ChatColor.GOLD + "[!]THE SEEKERS ARE UNLEASHED[!]");
+        }
         if(time == timeset/2){
-            announcement(ChatColor.GOLD + "THE TIMER IS HALFWAY DONE !");
+            announcement(ChatColor.GOLD + "[!]THE TIMER IS HALFWAY DONE[!]");
         }
         if(time == (timeset*0.1)){
-            announcement(ChatColor.RED + "THE TIMER IS ALMOST DONE !");
+            announcement(ChatColor.RED + "[!]THE TIMER IS ALMOST DONE[!]");
 
         }
         if(!t1.players.isEmpty() && t2.players.isEmpty()){
@@ -72,11 +81,27 @@ public class Game extends BukkitRunnable {
             this.runTaskTimer((Plugin) this.main, 0L, 20L);
             this.hasStarted = true;
             //setMysteryChests(true);
+            board.registerNewTeam(String.valueOf(nb));
+            board.getTeam(String.valueOf(nb)).setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             for(Player p : t1.players){
+                board.getTeam(String.valueOf(nb)).addEntry(p.getName());
+                p.teleport(zone);
+                p.setInvulnerable(true);
+                p.setFoodLevel(20);
+                p.setGameMode(GameMode.ADVENTURE);
                 setScoreBoard(p);
+                p.sendMessage(ChatColor.DARK_GREEN + "[!]You have 60 seconds to hide before the seekers get unleashed !\n");
             }
             for(Player p : t2.players){
+                p.teleport(zone);
+                p.setInvulnerable(true);
+                p.setFoodLevel(20);
+                p.setGameMode(GameMode.ADVENTURE);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20*60, 200));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*60, 200));
                 setScoreBoard(p);
+                p.sendMessage(ChatColor.DARK_GRAY + "[!]You have to wait 60 seconds before you can chase hiders !\n");
+
             }
             return true;
         }
@@ -147,7 +172,7 @@ public class Game extends BukkitRunnable {
         //setMysteryChests(false);
         main.cancelGame(nb);
     }
-    public void pushBack(Team t){
+    public void pushBack(CustomTeam t){
         for(Player p : t.players){
             if(p.getLocation().distance(zone) >= SIZE){
                 Location l = new Location(limit.get(p).getWorld(),limit.get(p).getX(),limit.get(p).getY(),limit.get(p).getZ(),p.getLocation().getYaw(),p.getLocation().getPitch());
@@ -161,6 +186,28 @@ public class Game extends BukkitRunnable {
                 else{
                     if(p.getLocation().distance(zone) < SIZE -10)
                     limit.replace(p,p.getLocation());
+                }
+            }
+        }
+    }
+
+    public void playersLocations(){
+        boolean check = false;
+        for(Player p1 : t1.players){
+            for(Player p2 : t2.players){
+                if(p1.getLocation().distance(p2.getLocation()) <= 20 && p1.getLocation().distance(p2.getLocation()) > 10){
+                    if(!check) {
+                        p1.sendActionBar(ChatColor.AQUA + "[!]A seeker is nearby, careful !");
+                        check = true;
+                    }
+                    p2.sendActionBar(ChatColor.AQUA + "[!]A hider is nearby !");
+                }
+                else if(p1.getLocation().distance(p2.getLocation()) <= 10){
+                    if(!check) {
+                        p1.sendActionBar(ChatColor.DARK_PURPLE + "[!]A seeker is very close, careful !");
+                        check = true;
+                    }
+                    p2.sendActionBar(ChatColor.DARK_PURPLE + "[!]A hider is very close !");
                 }
             }
         }

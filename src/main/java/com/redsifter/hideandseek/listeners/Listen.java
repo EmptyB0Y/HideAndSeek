@@ -12,9 +12,13 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.spigotmc.event.entity.EntityDismountEvent;
 
 import java.util.ArrayList;
 
@@ -66,6 +70,13 @@ public class Listen implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerStarve(FoodLevelChangeEvent event){
+        if(HideAndSeek.playerInGame((Player)event.getEntity())){
+            event.setCancelled(true);
+        }
+    }
+
     public void useChest(ArmorStand en){
         for(Game g : HideAndSeek.games){
             if(g != null) {
@@ -83,7 +94,8 @@ public class Listen implements Listener {
     public boolean seekerFind(Player p1, Player p2){
         for(Game g : HideAndSeek.games){
             if(g != null) {
-                if ((g.t2.players.contains(p1) && g.t1.players.contains(p2)) && g.hasStarted) {
+                if ((g.t2.players.contains(p1) && g.t1.players.contains(p2)) && g.hasStarted && g.time <= g.timeset - 60) {
+                    g.announcement(ChatColor.DARK_PURPLE + "[!]" + p2.getName() + " has been found by " + p1.getName());
                     return true;
                 }
             }

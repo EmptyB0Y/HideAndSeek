@@ -2,15 +2,17 @@ package com.redsifter.hideandseek;
 
 import com.redsifter.hideandseek.listeners.Listen;
 import com.redsifter.hideandseek.utils.Game;
-import com.redsifter.hideandseek.utils.Team;
+import com.redsifter.hideandseek.utils.CustomTeam;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -44,8 +46,8 @@ public final class HideAndSeek extends JavaPlugin {
                     return false;
                 }
                 //ADD TEAMS
-                Team t1 = new Team(1,"hiders");
-                Team t2 = new Team(2,"seekers");
+                CustomTeam t1 = new CustomTeam(1,"hiders");
+                CustomTeam t2 = new CustomTeam(2,"seekers");
                 if(args.length > 0) {
                     ArrayList<Player> lst = new ArrayList<Player>();
                     args[0] = args[0] + ',';
@@ -292,6 +294,18 @@ public final class HideAndSeek extends JavaPlugin {
             if(games[nb-1].hasStarted) {
                 games[nb - 1].cancel();
             }
+            for(Player p : games[nb-1].t1.players){
+                p.setGameMode(GameMode.SURVIVAL);
+                p.setInvulnerable(false);
+            }
+            for(Player p : games[nb-1].t2.players){
+                for (PotionEffect effect : p.getActivePotionEffects()) {
+                    p.removePotionEffect(effect.getType());
+                }
+                p.setGameMode(GameMode.SURVIVAL);
+                p.setInvulnerable(false);
+            }
+            games[nb-1].board.getTeam(String.valueOf(games[nb-1].nb)).unregister();
             games[nb-1].t1.flush();
             games[nb-1].t2.flush();
             games[nb-1].delScoreBoard();

@@ -1,22 +1,31 @@
 package com.redsifter.hideandseek.utils;
 
 import com.redsifter.hideandseek.HideAndSeek;
+import net.minecraft.server.v1_16_R3.EntityArmorStand;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_16_R3.PacketPlayOutSpawnEntityLiving;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-public class Team {
+public class CustomTeam {
     public ArrayList<Player> players = new ArrayList<Player>();
     private int playernb = 0;
     private int nb;
     public Channel ch;
     public String name;
     public boolean full = false;
+    public Map<ArrayList<UUID>,EntityArmorStand> hiddenmap = new HashMap<ArrayList<UUID>,EntityArmorStand>();
 
-    public Team(int number,String nm){
+    public CustomTeam(int number, String nm){
         nb = number;
         name = nm;
         ChatColor color = ChatColor.GOLD;
@@ -67,12 +76,6 @@ public class Team {
         players.clear();
         playernb = 0;
         ch.flush();
-    }
-
-    public void setPlayerNamesVisibility(boolean z){
-        for(Player p : players){
-            p.setCustomNameVisible(z);
-        }
     }
 
     public void chat(String msg){

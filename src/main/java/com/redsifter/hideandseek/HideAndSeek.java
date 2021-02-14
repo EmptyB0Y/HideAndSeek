@@ -233,7 +233,11 @@ public final class HideAndSeek extends JavaPlugin {
                         return false;
                     } else {
                         sender.sendMessage("Successfully started game n°" + games[Integer.parseInt(args[0]) - 1].nb + " !\n");
-                        //setMysteryChests(games[Integer.parseInt(args[0]) - 1],true);
+                        try {
+                            setMysteryChests(games[Integer.parseInt(args[0]) - 1],true);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 else{
@@ -250,7 +254,11 @@ public final class HideAndSeek extends JavaPlugin {
                     return false;
                 }
                 sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0])-1].nb + " !\n");
-                //setMysteryChests(games[Integer.parseInt(args[0])-1],false);
+                try {
+                    setMysteryChests(games[Integer.parseInt(args[0])-1],false);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 cancelGame(games[Integer.parseInt(args[0])-1].nb);
             }
             else if(label.equals("random")){
@@ -296,13 +304,15 @@ public final class HideAndSeek extends JavaPlugin {
         return count;
     }
 
-    public void setMysteryChests(Game g,boolean set){
+    public void setMysteryChests(Game g,boolean set) throws InterruptedException {
         if(set){
+            int[] random = generateRandom(200,-g.SIZE,g.SIZE);
+            wait(10000);
             boolean keepOn = true;
             int n;
             for(n = 0; n < g.SIZE/10; n++) {
                 do {
-                    Location l = new Location(g.zone.getWorld(), randDouble(0-g.SIZE,g.SIZE), randDouble(0-g.SIZE,g.SIZE), randDouble(0-g.SIZE,g.SIZE));
+                    Location l = new Location(g.zone.getWorld(), random[n], random[n+1], random[n+2]);
                     Location under = new Location(g.zone.getWorld(), l.getX(), l.getY()-1, l.getZ());
                     boolean valid = false;
                     for (ArmorStand a : g.chests.keySet()) {
@@ -342,10 +352,22 @@ public final class HideAndSeek extends JavaPlugin {
     }
 
     public static double randDouble(int min, int max) {
-        SimpleRandom random = new SimpleRandom(9);
-        double multiplicator = random.nextInt() * 0.1;
+        SimpleRandom random = new SimpleRandom(9000);
+        double multiplicator = random.nextInt() * 0.0001;
         System.out.println(multiplicator);
         return min + multiplicator * ((max - min));
+    }
+
+    public int[] generateRandom(int nbr,int min, int max){
+        if(max <= 0){
+            return null;
+        }
+        int[] random = new int[nbr];
+        int i;
+        for(i = 0;i < nbr;i++){
+            randDouble(min,max);
+        }
+        return random;
     }
 
     public void cancelGame(int nb){

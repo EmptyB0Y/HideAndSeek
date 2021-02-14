@@ -21,3 +21,5 @@ commands:
   hscancelgame:
     description: Cancel currently owned game
     usage: /hscancelgame <n°>
+  random:
+    description: Generate random number

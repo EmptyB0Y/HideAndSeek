@@ -3,16 +3,18 @@ package com.redsifter.hideandseek;
 import com.redsifter.hideandseek.listeners.Listen;
 import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.CustomTeam;
+import com.redsifter.hideandseek.utils.SimpleRandom;
 import org.apache.commons.lang.ArrayUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -89,6 +91,7 @@ public final class HideAndSeek extends JavaPlugin {
                             if (t == ',') {
                                 if (!playerInGame(Bukkit.getPlayerExact(str)) && !t1.players.contains(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str)) && i < MAXPLAYERS) {
                                     lst.add(Bukkit.getPlayerExact(str));
+                                    Bukkit.getPlayerExact(str).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
                                     str = "";
                                 } else {
                                     sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
@@ -230,6 +233,7 @@ public final class HideAndSeek extends JavaPlugin {
                         return false;
                     } else {
                         sender.sendMessage("Successfully started game n°" + games[Integer.parseInt(args[0]) - 1].nb + " !\n");
+                        //setMysteryChests(games[Integer.parseInt(args[0]) - 1],true);
                     }
                 }
                 else{
@@ -246,7 +250,11 @@ public final class HideAndSeek extends JavaPlugin {
                     return false;
                 }
                 sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0])-1].nb + " !\n");
+                //setMysteryChests(games[Integer.parseInt(args[0])-1],false);
                 cancelGame(games[Integer.parseInt(args[0])-1].nb);
+            }
+            else if(label.equals("random")){
+                sender.sendMessage(""+randDouble(Integer.parseInt(args[0]),Integer.parseInt(args[1])));
             }
         }
         return true;
@@ -285,8 +293,59 @@ public final class HideAndSeek extends JavaPlugin {
                 count++;
             }
         }
-        System.out.println(count);
         return count;
+    }
+
+    public void setMysteryChests(Game g,boolean set){
+        if(set){
+            boolean keepOn = true;
+            int n;
+            for(n = 0; n < g.SIZE/10; n++) {
+                do {
+                    Location l = new Location(g.zone.getWorld(), randDouble(0-g.SIZE,g.SIZE), randDouble(0-g.SIZE,g.SIZE), randDouble(0-g.SIZE,g.SIZE));
+                    Location under = new Location(g.zone.getWorld(), l.getX(), l.getY()-1, l.getZ());
+                    boolean valid = false;
+                    for (ArmorStand a : g.chests.keySet()) {
+                        if(l.distance(a.getLocation()) < g.SIZE / 10){
+                            valid = false;
+                            break;
+                        }
+                        else{
+                            valid = true;
+                        }
+                    }
+                    if(valid){
+                        System.out.println("Valid");
+                        if ((under.getBlock().getType() != Material.AIR && under.getBlock().getType() != Material.WATER) && l.getBlock().getType() == Material.AIR) {
+                            System.out.println("Building mystery chest");
+                            ArmorStand z = (ArmorStand)g.zone.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+                            ItemStack skull = new ItemStack(Material.CHEST, 1, (byte) 3);
+                            z.getEquipment().setHelmet(skull);
+                            z.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1000000,1));
+                            z.setCustomNameVisible(true);
+                            z.setCustomName(ChatColor.GOLD + "[?]MYSTERY CHEST[?]");
+                            z.setInvulnerable(true);
+                            z.setSmall(true);
+                            g.chests.put(z,true);
+                            keepOn = false;
+                        }
+                    }
+                } while (keepOn);
+            }
+
+        }
+        else{
+            for(ArmorStand a: g.chests.keySet()){
+                a.setHealth(0);
+            }
+        }
+    }
+
+    public static double randDouble(int min, int max) {
+        SimpleRandom random = new SimpleRandom(9);
+        double multiplicator = random.nextInt() * 0.1;
+        System.out.println(multiplicator);
+        return min + multiplicator * ((max - min));
     }
 
     public void cancelGame(int nb){

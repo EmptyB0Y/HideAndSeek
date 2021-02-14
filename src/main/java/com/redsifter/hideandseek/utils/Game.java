@@ -3,6 +3,7 @@ package com.redsifter.hideandseek.utils;
 import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.*;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -160,7 +161,6 @@ public class Game extends BukkitRunnable {
         for(Player p : t1.players){
             announcement(ChatColor.DARK_GREEN + p.getName() + "\n");
         }
-        //setMysteryChests(false);
         main.cancelGame(nb);
     }
 
@@ -169,7 +169,6 @@ public class Game extends BukkitRunnable {
         for(Player p : t2.players){
             announcement(ChatColor.RED + p.getName() + "\n");
         }
-        //setMysteryChests(false);
         main.cancelGame(nb);
     }
     public void pushBack(CustomTeam t){
@@ -239,47 +238,14 @@ public class Game extends BukkitRunnable {
         this.board.clearSlot(DisplaySlot.SIDEBAR);
     }
 
-    public void setMysteryChests(boolean set){
+    /*public void setMysteryChests(boolean set) throws InterruptedException {
         if(set){
-            Random rand = new Random();
-            char[] lst = new char[3];
-            int i = 0;
-            double rx = 0;
-            double ry = 0;
-            double rz = 0;
             boolean keepOn = true;
 
             for(int n = 0;n < SIZE/10;n++) {
                 do {
-                    while (i != 3) {
-                        double r = rand.nextDouble();
-                        if (r < 5) {
-                            lst[i] = '-';
-                            i++;
-                        } else if (r > 5) {
-                            lst[i] = '+';
-                            i++;
-                        } else {
-
-                        }
-                    }
-                    if (lst[0] == '+') {
-                        rx = zone.getX() + rand.nextDouble() * SIZE;
-                    } else {
-                        rx = zone.getX() - rand.nextDouble() * SIZE;
-                    }
-                    if (lst[1] == '+') {
-                        ry = zone.getY() + rand.nextDouble() * SIZE;
-                    } else {
-                        ry = zone.getY() - rand.nextDouble() * SIZE;
-                    }
-                    if (lst[2] == '+') {
-                        rz = zone.getZ() + rand.nextDouble() * SIZE;
-                    } else {
-                        rz = zone.getZ() - rand.nextDouble() * SIZE;
-                    }
-                    Location l = new Location(zone.getWorld(), rx, ry, rz);
-                    Location under = new Location(zone.getWorld(), rx, ry-1, rz);
+                    Location l = new Location(zone.getWorld(), zone.getX() + HideAndSeek.randDouble(-SIZE,SIZE), zone.getBlockY() + HideAndSeek.randDouble(-SIZE,SIZE), zone.getZ() + HideAndSeek.randDouble(-SIZE,SIZE));
+                    Location under = new Location(zone.getWorld(), l.getX(), l.getY()-1, l.getZ());
                     boolean valid = false;
                     for (ArmorStand a : chests.keySet()) {
                         if(l.distance(a.getLocation()) < SIZE / 10){
@@ -291,9 +257,14 @@ public class Game extends BukkitRunnable {
                         }
                     }
                     if(valid){
+                        System.out.println("Valid");
                         if ((under.getBlock().getType() != Material.AIR && under.getBlock().getType() != Material.WATER) && l.getBlock().getType() == Material.AIR) {
+                            System.out.println("Building mystery chest");
                             ArmorStand z = (ArmorStand)zone.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
-                            z.setInvisible(true);
+                            ItemStack skull = new ItemStack(Material.CHEST, 1, (byte) 3);
+                            z.getEquipment().setHelmet(skull);
+                            // minecraft:player_head{display:{Name:"{\"text\":\"Diamond Chest\"}"},SkullOwner:{Id:[I;1511441346,-1728559723,-1228896313,1301041844],Properties:{textures:[{Value:"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="}]}}}
+                            z.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1000000,1));
                             z.setCustomNameVisible(true);
                             z.setCustomName(ChatColor.GOLD + "[?]MYSTERY CHEST[?]");
                             z.setInvulnerable(true);
@@ -311,7 +282,7 @@ public class Game extends BukkitRunnable {
                 a.setHealth(0);
             }
         }
-    }
+    }*/
 
     public void useChest(Entity en){
         if(en instanceof ArmorStand){

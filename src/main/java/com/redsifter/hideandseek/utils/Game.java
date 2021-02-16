@@ -3,7 +3,6 @@ package com.redsifter.hideandseek.utils;
 import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -25,6 +24,7 @@ public class Game extends BukkitRunnable {
     public boolean full = false;
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
+    public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
     public int SIZE;
     //SCOREBOARD
     private ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -38,10 +38,15 @@ public class Game extends BukkitRunnable {
         owner = p;
         zone = p.getLocation();
         this.main = hs;
-        SIZE = ((t1.players.size() + t2.players.size())*30);
     }
 
     public void run(){
+        /*for(Player p : lastBonus.keySet()){
+            int i = lastBonus.get(p);
+            if(i > 0){
+                lastBonus.replace(p,i--);
+            }
+        }*/
         updateScoreBoard();
         pushBack(t1);
         pushBack(t2);
@@ -51,7 +56,8 @@ public class Game extends BukkitRunnable {
             cursor = 0;
         }
         if(time == timeset - 60){
-            announcement(ChatColor.GOLD + "[!]THE SEEKERS ARE UNLEASHED[!]");
+            announcement(ChatColor.DARK_RED + "[!]THE SEEKERS ARE UNLEASHED[!]");
+            announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]");
         }
         if(time == timeset/2){
             announcement(ChatColor.GOLD + "[!]THE TIMER IS HALFWAY DONE[!]");
@@ -75,13 +81,13 @@ public class Game extends BukkitRunnable {
         time--;
     }
 
-    public boolean start(int timer){
+    public boolean start(int timer,int limit){
         if((t1.players.size() - t2.players.size() <= 3 || t1.players.size() - t2.players.size() >= -3) && (!t1.players.isEmpty() && !t2.players.isEmpty())) {
             this.time = timer;
             this.timeset = timer;
             this.runTaskTimer((Plugin) this.main, 0L, 20L);
             this.hasStarted = true;
-            //setMysteryChests(true);
+            this.SIZE = limit;
             board.registerNewTeam(String.valueOf(nb));
             board.getTeam(String.valueOf(nb)).setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             for(Player p : t1.players){
@@ -238,57 +244,12 @@ public class Game extends BukkitRunnable {
         this.board.clearSlot(DisplaySlot.SIDEBAR);
     }
 
-    /*public void setMysteryChests(boolean set) throws InterruptedException {
-        if(set){
-            boolean keepOn = true;
-
-            for(int n = 0;n < SIZE/10;n++) {
-                do {
-                    Location l = new Location(zone.getWorld(), zone.getX() + HideAndSeek.randDouble(-SIZE,SIZE), zone.getBlockY() + HideAndSeek.randDouble(-SIZE,SIZE), zone.getZ() + HideAndSeek.randDouble(-SIZE,SIZE));
-                    Location under = new Location(zone.getWorld(), l.getX(), l.getY()-1, l.getZ());
-                    boolean valid = false;
-                    for (ArmorStand a : chests.keySet()) {
-                        if(l.distance(a.getLocation()) < SIZE / 10){
-                            valid = false;
-                            break;
-                        }
-                        else{
-                            valid = true;
-                        }
-                    }
-                    if(valid){
-                        System.out.println("Valid");
-                        if ((under.getBlock().getType() != Material.AIR && under.getBlock().getType() != Material.WATER) && l.getBlock().getType() == Material.AIR) {
-                            System.out.println("Building mystery chest");
-                            ArmorStand z = (ArmorStand)zone.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
-                            ItemStack skull = new ItemStack(Material.CHEST, 1, (byte) 3);
-                            z.getEquipment().setHelmet(skull);
-                            // minecraft:player_head{display:{Name:"{\"text\":\"Diamond Chest\"}"},SkullOwner:{Id:[I;1511441346,-1728559723,-1228896313,1301041844],Properties:{textures:[{Value:"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjU4MDdjYzRjM2I2OTU4YWVhNjE1NmU4NDUxOGQ5MWE0OWM1ZjMyOTcxZTZlYjI2OWEyM2EyNWEyNzE0NSJ9fX0="}]}}}
-                            z.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1000000,1));
-                            z.setCustomNameVisible(true);
-                            z.setCustomName(ChatColor.GOLD + "[?]MYSTERY CHEST[?]");
-                            z.setInvulnerable(true);
-                            z.setSmall(true);
-                            chests.put(z,true);
-                            keepOn = false;
-                        }
-                    }
-                } while (keepOn);
-            }
-
-        }
-        else{
-            for(ArmorStand a: chests.keySet()){
-                a.setHealth(0);
-            }
-        }
-    }*/
-
     public void useChest(Entity en){
         if(en instanceof ArmorStand){
-            if(en.getName().equals("[?]MYSTERY CHEST[?]")){
+            if(en.getName().equals(ChatColor.GOLD + "[?]")){
                 chests.replace((ArmorStand) en,false);
                 ((ArmorStand) en).setHealth(0);
+                en.remove();
             }
         }
     }

@@ -8,16 +8,14 @@ import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Random;
 
 public final class HideAndSeek extends JavaPlugin {
 
@@ -215,12 +213,16 @@ public final class HideAndSeek extends JavaPlugin {
                 sender.sendMessage("There are " + countGames() + " games available games right now.\n");
             }
             else if(label.equals("hsstartgame")){
-                if(args.length < 2){
+                if(args.length < 3){
                     sender.sendMessage("Missing arguments...\n");
                     return false;
                 }
                 else if(Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1200){
-                    sender.sendMessage("The time must be contained between 200 and 1200");
+                    sender.sendMessage("The time must be contained between 200 and 1200\n");
+                    return false;
+                }
+                if(Integer.parseInt(args[2]) < 150 || Integer.parseInt(args[2]) > 800){
+                    sender.sendMessage("The limit must be contained between 150 and 800\n");
                     return false;
                 }
                 if(countGames() >= 1) {
@@ -228,16 +230,12 @@ public final class HideAndSeek extends JavaPlugin {
                         sender.sendMessage("You are not the owner of this game...\n");
                         return false;
                     }
-                    if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]))) {
+                    if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]),Integer.parseInt(args[2]))) {
                         sender.sendMessage("Couldn't start game, difference between the two teams is too high !\n");
                         return false;
                     } else {
                         sender.sendMessage("Successfully started game n°" + games[Integer.parseInt(args[0]) - 1].nb + " !\n");
-                        try {
-                            setMysteryChests(games[Integer.parseInt(args[0]) - 1],true);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        setMysteryChests(games[Integer.parseInt(args[0]) - 1],true);
                     }
                 }
                 else{
@@ -246,7 +244,7 @@ public final class HideAndSeek extends JavaPlugin {
             }
             else if(label.equals("hscancelgame")){
                 if(args.length != 1){
-                    sender.sendMessage("Usage : /hscancelgame <n°>\n");
+                    sender.sendMessage("You must specify a number\n");
                     return false;
                 }
                 if(games[Integer.parseInt(args[0])-1].owner != (Player)sender){
@@ -254,15 +252,38 @@ public final class HideAndSeek extends JavaPlugin {
                     return false;
                 }
                 sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0])-1].nb + " !\n");
-                try {
-                    setMysteryChests(games[Integer.parseInt(args[0])-1],false);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 cancelGame(games[Integer.parseInt(args[0])-1].nb);
             }
             else if(label.equals("random")){
-                sender.sendMessage(""+randDouble(Integer.parseInt(args[0]),Integer.parseInt(args[1])));
+                if(args.length != 2){
+                    return false;
+                }
+                else if(Integer.parseInt(args[0]) > 10 && Integer.parseInt(args[0]) > 20){
+                    return false;
+                }
+                ArrayList<Location> random = randLocations(((Player) sender).getLocation(),Integer.parseInt(args[0]),Integer.parseInt(args[1]));
+                for(Location l : random){
+                    ArmorStand a = (ArmorStand) ((Player)sender).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+                    ItemStack skull = new ItemStack(Material.CHEST, 1);
+                    a.getEquipment().setHelmet(skull);
+                    a.setInvisible(true);
+                    a.setCustomNameVisible(true);
+                    a.setCustomName(ChatColor.GOLD + "[?]");
+                    a.setInvulnerable(true);
+                    a.setSmall(true);
+                    a.setSilent(true);
+                }
+            }
+            else if(label.equals("setchest")){
+                ArmorStand a = (ArmorStand) ((Player)sender).getWorld().spawnEntity(((Player)sender).getLocation(), EntityType.ARMOR_STAND);
+                ItemStack skull = new ItemStack(Material.CHEST, 1);
+                a.getEquipment().setHelmet(skull);
+                a.setInvisible(true);
+                a.setCustomNameVisible(true);
+                a.setCustomName(ChatColor.GOLD + "[?]");
+                a.setInvulnerable(true);
+                a.setSmall(true);
+                a.setSilent(true);
             }
         }
         return true;
@@ -304,70 +325,76 @@ public final class HideAndSeek extends JavaPlugin {
         return count;
     }
 
-    public void setMysteryChests(Game g,boolean set) throws InterruptedException {
-        if(set){
-            int[] random = generateRandom(200,-g.SIZE,g.SIZE);
-            wait(10000);
-            boolean keepOn = true;
-            int n;
-            for(n = 0; n < g.SIZE/10; n++) {
-                do {
-                    Location l = new Location(g.zone.getWorld(), random[n], random[n+1], random[n+2]);
-                    Location under = new Location(g.zone.getWorld(), l.getX(), l.getY()-1, l.getZ());
-                    boolean valid = false;
-                    for (ArmorStand a : g.chests.keySet()) {
-                        if(l.distance(a.getLocation()) < g.SIZE / 10){
-                            valid = false;
-                            break;
-                        }
-                        else{
-                            valid = true;
-                        }
-                    }
-                    if(valid){
-                        System.out.println("Valid");
-                        if ((under.getBlock().getType() != Material.AIR && under.getBlock().getType() != Material.WATER) && l.getBlock().getType() == Material.AIR) {
-                            System.out.println("Building mystery chest");
-                            ArmorStand z = (ArmorStand)g.zone.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
-                            ItemStack skull = new ItemStack(Material.CHEST, 1, (byte) 3);
-                            z.getEquipment().setHelmet(skull);
-                            z.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1000000,1));
-                            z.setCustomNameVisible(true);
-                            z.setCustomName(ChatColor.GOLD + "[?]MYSTERY CHEST[?]");
-                            z.setInvulnerable(true);
-                            z.setSmall(true);
-                            g.chests.put(z,true);
-                            keepOn = false;
-                        }
-                    }
-                } while (keepOn);
+    public void setMysteryChests(Game g,boolean set){
+        if(set) {
+            ArrayList<Location> random = randLocations(g.zone,10,5);
+            for(Location l : random) {
+                if(l.distance(g.zone) <= g.SIZE) {
+                    System.out.println("Valid");
+                    System.out.println("Building mystery chest");
+                    ArmorStand a = (ArmorStand) (l).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+                    ItemStack skull = new ItemStack(Material.CHEST, 1);
+                    a.getEquipment().setHelmet(skull);
+                    a.setInvisible(true);
+                    a.setCustomNameVisible(true);
+                    a.setCustomName(ChatColor.GOLD + "[?]");
+                    a.setInvulnerable(true);
+                    a.setSmall(true);
+                    a.setSilent(true);
+                    g.chests.put(a, true);
+                }
             }
-
         }
         else{
             for(ArmorStand a: g.chests.keySet()){
                 a.setHealth(0);
+                a.remove();
+            }
+            g.chests.clear();
+        }
+    }
+
+    public static double randDouble(double min, double max) {
+        /*SimpleRandom random = new SimpleRandom(90000);
+        double multiplicator = random.nextInt() * 0.00001;*/
+        return min + Math.random() * ((max - min));
+    }
+
+    public ArrayList<Location> randLocations(Location l, double radius, int density){
+        Random random = new Random();
+        Location[][] Matrice = new Location[density*2][density*2];
+        float yaw = 0;
+        float pitch = 0;
+        Matrice[0][0] = new Location(l.getWorld(),l.getX()-(density*radius)/2,l.getY(),l.getZ()-(density*radius)/2,yaw,pitch);
+        int i;
+        int j;
+
+        for(i = 0;i < density*2;i++){
+            if(i != 0) {
+                Matrice[i][0] = new Location(l.getWorld(), Matrice[i - 1][0].getX() + radius, Matrice[i - 1][0].getY(), Matrice[i - 1][0].getZ(), yaw, pitch);
+            }
+            for(j = 1;j < Matrice[i].length; j++){
+                Matrice[i][j] = new Location(l.getWorld(), Matrice[i][j - 1].getX(), Matrice[i][j - 1].getY(), Matrice[i][j - 1].getZ() + radius, yaw, pitch);
+                System.out.println("Line " + i + " Column "+ j+ "/" + Matrice[i].length  + " : " + Matrice[i][j]);
+
             }
         }
-    }
 
-    public static double randDouble(int min, int max) {
-        SimpleRandom random = new SimpleRandom(9000);
-        double multiplicator = random.nextInt() * 0.0001;
-        System.out.println(multiplicator);
-        return min + multiplicator * ((max - min));
-    }
-
-    public int[] generateRandom(int nbr,int min, int max){
-        if(max <= 0){
-            return null;
+        ArrayList<Location> randLocs = new ArrayList<Location>();
+        for(i = 0;i < Matrice.length;i++){
+            for(j = 0;j < Matrice[i].length;j++){
+                Matrice[i][j].setX(Matrice[i][j].getX()+randDouble(-5,5));
+                Matrice[i][j].setY(Matrice[i][j].getY()+randDouble(-5,10));
+                Matrice[i][j].setZ(Matrice[i][j].getZ()+randDouble(-5,5));
+                if(random.nextBoolean() && Matrice[i][j].getBlock().getType() == Material.AIR){
+                    randLocs.add(Matrice[i][j]);
+                }
+            }
         }
-        int[] random = new int[nbr];
-        int i;
-        for(i = 0;i < nbr;i++){
-            randDouble(min,max);
+        for(Location loc : randLocs){
+            loc.setYaw((float)randDouble(-179,179));
         }
-        return random;
+    return randLocs;
     }
 
     public void cancelGame(int nb){
@@ -386,12 +413,14 @@ public final class HideAndSeek extends JavaPlugin {
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
             }
+            setMysteryChests(games[nb-1],false);
             games[nb-1].board.getTeam(String.valueOf(games[nb-1].nb)).unregister();
             games[nb-1].t1.flush();
             games[nb-1].t2.flush();
             games[nb-1].delScoreBoard();
             games[nb-1] = null;
             ArrayUtils.removeElement(games, games[nb-1]);
+            System.gc();
 
         }
     }

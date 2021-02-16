@@ -23,3 +23,5 @@ commands:
     usage: /hscancelgame <n°>
   random:
     description: Generate random number
+  setchest:
+    description: spawn chest

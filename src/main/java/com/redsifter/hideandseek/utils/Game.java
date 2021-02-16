@@ -41,12 +41,6 @@ public class Game extends BukkitRunnable {
     }
 
     public void run(){
-        /*for(Player p : lastBonus.keySet()){
-            int i = lastBonus.get(p);
-            if(i > 0){
-                lastBonus.replace(p,i--);
-            }
-        }*/
         updateScoreBoard();
         pushBack(t1);
         pushBack(t2);

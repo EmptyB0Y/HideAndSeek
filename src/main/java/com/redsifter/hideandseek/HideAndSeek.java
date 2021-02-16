@@ -3,7 +3,6 @@ package com.redsifter.hideandseek;
 import com.redsifter.hideandseek.listeners.Listen;
 import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.CustomTeam;
-import com.redsifter.hideandseek.utils.SimpleRandom;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -327,7 +326,7 @@ public final class HideAndSeek extends JavaPlugin {
 
     public void setMysteryChests(Game g,boolean set){
         if(set) {
-            ArrayList<Location> random = randLocations(g.zone,10,5);
+            ArrayList<Location> random = randLocations(g.zone,12,10);
             for(Location l : random) {
                 if(l.distance(g.zone) <= g.SIZE) {
                     System.out.println("Valid");
@@ -355,8 +354,6 @@ public final class HideAndSeek extends JavaPlugin {
     }
 
     public static double randDouble(double min, double max) {
-        /*SimpleRandom random = new SimpleRandom(90000);
-        double multiplicator = random.nextInt() * 0.00001;*/
         return min + Math.random() * ((max - min));
     }
 
@@ -365,7 +362,7 @@ public final class HideAndSeek extends JavaPlugin {
         Location[][] Matrice = new Location[density*2][density*2];
         float yaw = 0;
         float pitch = 0;
-        Matrice[0][0] = new Location(l.getWorld(),l.getX()-(density*radius)/2,l.getY(),l.getZ()-(density*radius)/2,yaw,pitch);
+        Matrice[0][0] = new Location(l.getWorld(),l.getX()-(density*radius),l.getY(),l.getZ()-(density*radius),yaw,pitch);
         int i;
         int j;
 

@@ -111,7 +111,7 @@ public class Listen implements Listener {
 
     public void bonus(Player p){
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        int b = (int)HideAndSeek.randDouble(0,3);
+        int b = (int)HideAndSeek.randDouble(0,3.5);
         if(p.getInventory().contains(Material.GLASS_BOTTLE)){
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
@@ -139,7 +139,6 @@ public class Listen implements Listener {
                 break;
             case 3:
                 p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");
-                p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 50));
                 p.setAllowFlight(true);
                 p.setFlying(true);
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -168,9 +167,14 @@ public class Listen implements Listener {
     public boolean gameHit(Player p1, Player p2){
         for(Game g : HideAndSeek.games){
             if(g != null) {
-                if (((g.t2.players.contains(p1) && g.t1.players.contains(p2)) || (g.t2.players.contains(p2) && g.t1.players.contains(p1))) && g.hasStarted && g.time <= g.timeset - 60) {
-                    g.announcement(ChatColor.DARK_AQUA + "[!]" + p2.getName() + " has spotted " + p1.getName());
-                    return true;
+                if(g.hasStarted && g.time <= g.timeset - 60) {
+                    if (g.t2.players.contains(p1) && g.t1.players.contains(p2)) {
+                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.DARK_GREEN + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.RED + p1.getName());                        return true;
+                    }
+                    else if(g.t2.players.contains(p2) && g.t1.players.contains(p1)){
+                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.RED + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.DARK_GREEN + p1.getName());
+                        return true;
+                    }
                 }
             }
         }
@@ -182,20 +186,22 @@ public class Listen implements Listener {
                 if(g.time <= g.timeset - 60){
                     if(g.lastBonus.containsKey(p)){
                         if(g.t1.players.contains(p)) {
-                            if (g.timeset - g.lastBonus.get(p) >= 10) {
+                            if (g.lastBonus.get(p) - g.time >= 10) {
+                                g.lastBonus.replace(p,g.time);
                                 return true;
                             }
                             else{
-                                p.sendMessage(ChatColor.GRAY + "[!]You must wait " + (10 - (g.timeset - g.lastBonus.get(p))) + " more seconds before you can get your next bonus");
+                                p.sendMessage(ChatColor.GRAY + "[!]You must wait " + (10 - ((g.lastBonus.get(p)) - g.time)) + " more seconds before you can get your next bonus");
                                 return false;
                             }
                         }
                         else if(g.t2.players.contains(p)){
-                            if (g.timeset - g.lastBonus.get(p) >= 15) {
+                            if (g.lastBonus.get(p) - g.time >= 20) {
+                                g.lastBonus.replace(p,g.time);
                                 return true;
                             }
                             else{
-                                p.sendMessage(ChatColor.GRAY + "[!]You must wait " + (15 - (g.timeset - g.lastBonus.get(p))) + " more seconds before you can get your next bonus");
+                                p.sendMessage(ChatColor.GRAY + "[!]You must wait " + (20 - ((g.lastBonus.get(p)) - g.time)) + " more seconds before you can get your next bonus");
                                 return false;
                             }
                         }

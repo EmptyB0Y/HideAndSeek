@@ -3,6 +3,8 @@ package com.redsifter.hideandseek.utils;
 import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.*;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -25,6 +27,7 @@ public class Game extends BukkitRunnable {
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
     public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
+    public HashMap<Player,Inventory> savedInventories = new HashMap<Player,Inventory>();
     public int SIZE;
     //SCOREBOARD
     private ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -85,6 +88,8 @@ public class Game extends BukkitRunnable {
             board.registerNewTeam(String.valueOf(nb));
             board.getTeam(String.valueOf(nb)).setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             for(Player p : t1.players){
+                savedInventories.put(p,p.getInventory());
+                p.getInventory().clear();
                 board.getTeam(String.valueOf(nb)).addEntry(p.getName());
                 p.teleport(zone);
                 p.setInvulnerable(true);
@@ -94,6 +99,8 @@ public class Game extends BukkitRunnable {
                 p.sendMessage(ChatColor.DARK_GREEN + "[!]You have 60 seconds to hide before the seekers get unleashed !\n");
             }
             for(Player p : t2.players){
+                savedInventories.put(p,p.getInventory());
+                p.getInventory().clear();
                 p.teleport(zone);
                 p.setInvulnerable(true);
                 p.setFoodLevel(20);
@@ -191,21 +198,19 @@ public class Game extends BukkitRunnable {
     }
 
     public void playersLocations(){
-        boolean check = false;
         for(Player p1 : t1.players){
+            if(p1.getInventory().getItemInOffHand().getType() == Material.COMPASS){
+                p1.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+            }
             for(Player p2 : t2.players){
                 if(p1.getLocation().distance(p2.getLocation()) <= 20 && p1.getLocation().distance(p2.getLocation()) > 10){
-                    if(!check) {
-                        p1.sendActionBar(ChatColor.AQUA + "[!]A seeker is nearby, careful !");
-                        check = true;
-                    }
+                    p1.sendActionBar(ChatColor.AQUA + "[!]A seeker is nearby, careful !");
                     p2.sendActionBar(ChatColor.AQUA + "[!]A hider is nearby !");
                 }
                 else if(p1.getLocation().distance(p2.getLocation()) <= 10){
-                    if(!check) {
-                        p1.sendActionBar(ChatColor.DARK_PURPLE + "[!]A seeker is very close, careful !");
-                        check = true;
-                    }
+                    p1.sendActionBar(ChatColor.DARK_PURPLE + "[!]A seeker is very close, careful !");
+                    p1.getInventory().setItemInOffHand(new ItemStack(Material.COMPASS));
+                    p1.setCompassTarget(new Location(p2.getWorld(),p2.getLocation().getX(),p2.getLocation().getY(),p2.getLocation().getZ()));
                     p2.sendActionBar(ChatColor.DARK_PURPLE + "[!]A hider is very close !");
                 }
             }

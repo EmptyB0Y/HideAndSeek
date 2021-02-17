@@ -21,7 +21,7 @@ public final class HideAndSeek extends JavaPlugin {
     @Override
     public void onEnable() {
         System.out.println("Enabled HideAndSeek\n");
-        this.getServer().getPluginManager().registerEvents(new Listen(), this);
+        this.getServer().getPluginManager().registerEvents(new Listen(this), this);
     }
 
     @Override
@@ -329,8 +329,6 @@ public final class HideAndSeek extends JavaPlugin {
             ArrayList<Location> random = randLocations(g.zone,12,10);
             for(Location l : random) {
                 if(l.distance(g.zone) <= g.SIZE) {
-                    System.out.println("Valid");
-                    System.out.println("Building mystery chest");
                     ArmorStand a = (ArmorStand) (l).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
                     ItemStack skull = new ItemStack(Material.CHEST, 1);
                     a.getEquipment().setHelmet(skull);
@@ -372,7 +370,7 @@ public final class HideAndSeek extends JavaPlugin {
             }
             for(j = 1;j < Matrice[i].length; j++){
                 Matrice[i][j] = new Location(l.getWorld(), Matrice[i][j - 1].getX(), Matrice[i][j - 1].getY(), Matrice[i][j - 1].getZ() + radius, yaw, pitch);
-                System.out.println("Line " + i + " Column "+ j+ "/" + Matrice[i].length  + " : " + Matrice[i][j]);
+                //System.out.println("Line " + i + " Column "+ j+ "/" + Matrice[i].length  + " : " + Matrice[i][j]);
 
             }
         }
@@ -400,12 +398,23 @@ public final class HideAndSeek extends JavaPlugin {
                 games[nb - 1].cancel();
             }
             for(Player p : games[nb-1].t1.players){
+                p.getInventory().clear();
+                if(!games[nb-1].savedInventories.get(p).isEmpty()) {
+                    for(ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                        p.getInventory().addItem(it);
+                    }
+                }
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
             }
             for(Player p : games[nb-1].t2.players){
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
+                }
+                if(!games[nb-1].savedInventories.get(p).isEmpty()) {
+                    for(ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                        p.getInventory().addItem(it);
+                    }
                 }
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);

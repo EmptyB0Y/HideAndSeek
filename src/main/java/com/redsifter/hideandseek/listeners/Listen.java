@@ -13,10 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -24,6 +24,11 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.util.ArrayList;
 
 public class Listen implements Listener {
+
+    private HideAndSeek main;
+    public Listen(HideAndSeek hs){
+        this.main = hs;
+    }
 
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event){
@@ -86,6 +91,38 @@ public class Listen implements Listener {
     }
 
     @EventHandler
+    public void onPlayerSwapItem(PlayerSwapHandItemsEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerPickUpItem(PlayerAttemptPickupItemEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDragItem(InventoryDragEvent event){
+        if(event.getInventory().getType() == InventoryType.PLAYER){
+            for(HumanEntity p : event.getViewers()){
+                if(HideAndSeek.playerInGame((Player)p)){
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onDisconnect(PlayerQuitEvent event){
         if(HideAndSeek.playerInGame(event.getPlayer())){
             removeFromGame(event.getPlayer());
@@ -111,7 +148,7 @@ public class Listen implements Listener {
 
     public void bonus(Player p){
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        int b = (int)HideAndSeek.randDouble(0,3.5);
+        int b = (int)HideAndSeek.randDouble(0,3.3);
         if(p.getInventory().contains(Material.GLASS_BOTTLE)){
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
@@ -126,7 +163,7 @@ public class Listen implements Listener {
                     p.getInventory().remove(Material.CROSSBOW);
                 }
                 p.getInventory().setItemInMainHand(new ItemStack(Material.CROSSBOW));
-                p.getInventory().setItemInOffHand(new ItemStack(Material.SPECTRAL_ARROW,8));
+                p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW,8));
                 break;
             case 2:
                 p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
@@ -142,7 +179,7 @@ public class Listen implements Listener {
                 p.setAllowFlight(true);
                 p.setFlying(true);
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                scheduler.scheduleSyncDelayedTask((Plugin)this, new Runnable() {
+                scheduler.scheduleSyncDelayedTask(main, new Runnable() {
                     public void run() {
                         p.setAllowFlight(false);
                         p.setFlying(false);

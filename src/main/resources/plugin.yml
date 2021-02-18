@@ -22,6 +22,8 @@ commands:
     description: Cancel currently owned game
     usage: /hscancelgame <n°>
   random:
-    description: Generate random number
-  setchest:
-    description: spawn chest
+    description: Generate random chest field
+  saveinv:
+    description: save inventories for all online players
+  loadinv:
+    description: load an inventory for a specific player

@@ -147,14 +147,33 @@ public class Game extends BukkitRunnable {
 
     public boolean remPlayer(Player p){
         if(t1.players.contains(p)){
-                t1.remPlayer(p.getName());
-                return true;
+            t1.remPlayer(p.getName());
+            p.setGameMode(GameMode.SURVIVAL);
+            p.setInvulnerable(false);
+            p.getInventory().clear();
+            if(!this.savedInventories.get(p).isEmpty()) {
+                for(ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                    p.getInventory().addItem(it);
+                }
+            }
+            return true;
 
         }
         else if(t2.players.contains(p)){
-                t2.remPlayer(p.getName());
-                return true;
+            t2.remPlayer(p.getName());
+            p.setGameMode(GameMode.SURVIVAL);
+            p.setInvulnerable(false);
+            p.getInventory().clear();
+            for (PotionEffect effect : p.getActivePotionEffects()) {
+                p.removePotionEffect(effect.getType());
             }
+            if(!this.savedInventories.get(p).isEmpty()) {
+                for(ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                    p.getInventory().addItem(it);
+                }
+            }
+            return true;
+        }
         return false;
     }
 

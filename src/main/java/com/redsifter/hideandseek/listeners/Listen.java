@@ -260,12 +260,7 @@ public class Listen implements Listener {
     public void removeFromGame(Player pl) {
         for (Game g : HideAndSeek.games) {
             if (g != null) {
-                if (g.t1.players.contains(pl)) {
-                    g.t1.players.remove(pl);
-                }
-                else if (g.t2.players.contains(pl)) {
-                    g.t2.players.remove(pl);
-                }
+                g.remPlayer(pl);
             }
         }
     }

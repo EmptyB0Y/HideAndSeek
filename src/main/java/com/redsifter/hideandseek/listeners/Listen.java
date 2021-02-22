@@ -3,10 +3,7 @@ package com.redsifter.hideandseek.listeners;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -63,6 +60,8 @@ public class Listen implements Listener {
                     if (target.getName().equals(ChatColor.GOLD + "[?]") && chestsAreAvailableFor(pl)) {
                         bonus(pl);
                         useChest((ArmorStand) target);
+                        target.getWorld().playSound(target.getLocation(), Sound.BLOCK_CHAIN_BREAK,5,5);
+                        target.getWorld().spawnParticle(Particle.REDSTONE,target.getLocation(),5);
                     }
                 }
             }
@@ -146,46 +145,41 @@ public class Listen implements Listener {
         }
     }
 
-    public void bonus(Player p){
+    public void bonus(Player p) {
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        int b = (int)HideAndSeek.randDouble(0,3.3);
-        if(p.getInventory().contains(Material.GLASS_BOTTLE)){
+        double b = HideAndSeek.randDouble(0, 27);
+        if (p.getInventory().contains(Material.GLASS_BOTTLE)) {
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
-        switch(b){
-            case 0:
-                p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
-                p.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
-                break;
-            case 1:
-                p.sendMessage(ChatColor.DARK_RED + "[CROSSBOW]");
-                if( p.getInventory().contains(Material.CROSSBOW)){
-                    p.getInventory().remove(Material.CROSSBOW);
+        if (0 <= b && b <= 7) {
+            p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
+            p.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+        } else if (7 < b && b <= 19) {
+            p.sendMessage(ChatColor.DARK_RED + "[CROSSBOW]");
+            if (p.getInventory().contains(Material.CROSSBOW)) {
+                p.getInventory().remove(Material.CROSSBOW);
+            }
+            p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
+            p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 8));
+        } else if (19 < b && b <= 25) {
+            p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
+            ItemStack potion = new ItemStack(Material.POTION, 1);
+            PotionMeta meta = (PotionMeta) potion.getItemMeta();
+            meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, 150, 5), true);
+            meta.setDisplayName(ChatColor.AQUA + "SUPERSPEED");
+            potion.setItemMeta(meta);
+            p.getInventory().addItem(potion);
+        } else if (25 < b && b <= 27) {
+            p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");
+            p.setAllowFlight(true);
+            p.setFlying(true);
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(main, new Runnable() {
+                public void run() {
+                    p.setAllowFlight(false);
+                    p.setFlying(false);
                 }
-                p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
-                p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW,8));
-                break;
-            case 2:
-                p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
-                ItemStack potion = new ItemStack(Material.POTION,1);
-                PotionMeta meta = (PotionMeta)potion.getItemMeta();
-                meta.addCustomEffect(new PotionEffect( PotionEffectType.SPEED, 150, 5), true);
-                meta.setDisplayName(ChatColor.AQUA + "SUPERSPEED");
-                potion.setItemMeta(meta);
-                p.getInventory().addItem(potion);
-                break;
-            case 3:
-                p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");
-                p.setAllowFlight(true);
-                p.setFlying(true);
-                BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                scheduler.scheduleSyncDelayedTask(main, new Runnable() {
-                    public void run() {
-                        p.setAllowFlight(false);
-                        p.setFlying(false);
-                    }
-                },  100L);
-                break;
+            }, 100L);
         }
     }
 

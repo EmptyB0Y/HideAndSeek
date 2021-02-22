@@ -125,8 +125,8 @@ public final class HideAndSeek extends JavaPlugin {
                         sender.sendMessage("Not a valid game number (1 to 3)\n");
                         return false;
                     }
-
-                    if (games[Integer.parseInt(args[1]) - 1] != null && !games[Integer.parseInt(args[1])].hasStarted && !games[Integer.parseInt(args[1])].full) {
+                    Player p = (Player) sender;
+                    if (games[Integer.parseInt(args[1]) - 1] != null && !games[Integer.parseInt(args[1])].hasStarted && !games[Integer.parseInt(args[1])].full && (!games[Integer.parseInt(args[1]) - 1].t1.players.contains(p) && !games[Integer.parseInt(args[1]) - 1].t2.players.contains(p))) {
                         if (args[0].equals("h")) {
                             if (games[Integer.parseInt(args[1])].addPlayer((Player) sender, "h")) {
                                 sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1]) - 1].nb + " as hider !\n");
@@ -212,8 +212,8 @@ public final class HideAndSeek extends JavaPlugin {
                     sender.sendMessage("The time must be contained between 200 and 1200\n");
                     return false;
                 }
-                if (Integer.parseInt(args[2]) < 150 || Integer.parseInt(args[2]) > 800) {
-                    sender.sendMessage("The limit must be contained between 150 and 800\n");
+                if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 800) {
+                    sender.sendMessage("The limit must be contained between 120 and 800\n");
                     return false;
                 }
                 if (countGames() >= 1) {

@@ -155,14 +155,14 @@ public class Listen implements Listener {
         switch(b){
             case 0:
                 p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
-                p.getInventory().setItemInMainHand(new ItemStack(Material.ENDER_PEARL));
+                p.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
                 break;
             case 1:
                 p.sendMessage(ChatColor.DARK_RED + "[CROSSBOW]");
                 if( p.getInventory().contains(Material.CROSSBOW)){
                     p.getInventory().remove(Material.CROSSBOW);
                 }
-                p.getInventory().setItemInMainHand(new ItemStack(Material.CROSSBOW));
+                p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
                 p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW,8));
                 break;
             case 2:
@@ -172,7 +172,7 @@ public class Listen implements Listener {
                 meta.addCustomEffect(new PotionEffect( PotionEffectType.SPEED, 150, 5), true);
                 meta.setDisplayName(ChatColor.AQUA + "SUPERSPEED");
                 potion.setItemMeta(meta);
-                p.getInventory().setItemInMainHand(potion);
+                p.getInventory().addItem(potion);
                 break;
             case 3:
                 p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");

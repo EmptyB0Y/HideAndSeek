@@ -425,6 +425,7 @@ public final class HideAndSeek extends JavaPlugin {
                 p.setInvulnerable(false);
             }
             for(Player p : games[nb-1].t2.players){
+                p.getInventory().clear();
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }

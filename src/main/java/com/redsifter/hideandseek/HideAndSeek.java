@@ -12,6 +12,8 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scoreboard.Team;
+
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,9 +64,9 @@ public final class HideAndSeek extends JavaPlugin {
                         str = "";
                         for (char t : destArray) {
                             if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str)) && i < MAXPLAYERS) {
-                                    lst.add(Bukkit.getPlayerExact(str));
-                                    Bukkit.getPlayerExact(str).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
+                                if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
+                                    lst.add(Bukkit.getPlayerExact(str.trim()));
+                                    Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
                                     str = "";
                                 } else {
                                     sender.sendMessage(str + " is either already in a game, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
@@ -88,9 +90,9 @@ public final class HideAndSeek extends JavaPlugin {
                         str = "";
                         for (char t : destArray) {
                             if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str)) && !t1.players.contains(Bukkit.getPlayerExact(str)) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str)) && i < MAXPLAYERS) {
-                                    lst.add(Bukkit.getPlayerExact(str));
-                                    Bukkit.getPlayerExact(str).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
+                                if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && !t1.players.contains(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
+                                    lst.add(Bukkit.getPlayerExact(str.trim()));
+                                    Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
                                     str = "";
                                 } else {
                                     sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
@@ -411,9 +413,11 @@ public final class HideAndSeek extends JavaPlugin {
             }
             for(Player p : games[nb-1].t1.players){
                 p.getInventory().clear();
-                if(!games[nb-1].savedInventories.get(p).isEmpty()) {
-                    for(ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
-                        p.getInventory().addItem(it);
+                if(games[nb-1].savedInventories.get(p) != null) {
+                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                            p.getInventory().addItem(it);
+                        }
                     }
                 }
                 p.setGameMode(GameMode.SURVIVAL);
@@ -423,23 +427,27 @@ public final class HideAndSeek extends JavaPlugin {
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
-                if(!games[nb-1].savedInventories.get(p).isEmpty()) {
-                    for(ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
-                        p.getInventory().addItem(it);
+                if(games[nb-1].savedInventories.get(p) != null) {
+                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                            p.getInventory().addItem(it);
+                        }
                     }
                 }
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
             }
             setMysteryChests(games[nb-1],false);
-            games[nb-1].board.getTeam(String.valueOf(games[nb-1].nb)).unregister();
+            for(Team t : games[nb-1].board.getTeams()) {
+                //games[nb - 1].board.getTeam(String.valueOf(games[nb - 1].nb)).unregister();
+                t.unregister();
+            }
             games[nb-1].t1.flush();
             games[nb-1].t2.flush();
             games[nb-1].delScoreBoard();
             games[nb-1] = null;
             ArrayUtils.removeElement(games, games[nb-1]);
             System.gc();
-
         }
     }
 }

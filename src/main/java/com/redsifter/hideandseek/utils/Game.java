@@ -148,12 +148,15 @@ public class Game extends BukkitRunnable {
     public boolean remPlayer(Player p){
         if(t1.players.contains(p)){
             t1.remPlayer(p.getName());
+            board.getTeam(""+nb).removeEntry(p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.setInvulnerable(false);
             p.getInventory().clear();
-            if(!this.savedInventories.get(p).isEmpty()) {
-                for(ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                    p.getInventory().addItem(it);
+            if(this.savedInventories.get(p) != null) {
+                if (!this.savedInventories.get(p).isEmpty()) {
+                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                        p.getInventory().addItem(it);
+                    }
                 }
             }
             return true;

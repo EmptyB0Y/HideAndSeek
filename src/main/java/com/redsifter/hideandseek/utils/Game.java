@@ -152,9 +152,9 @@ public class Game extends BukkitRunnable {
             p.setGameMode(GameMode.SURVIVAL);
             p.setInvulnerable(false);
             p.getInventory().clear();
-            if(this.savedInventories.get(p) != null) {
-                if (!this.savedInventories.get(p).isEmpty()) {
-                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+            if (!this.savedInventories.get(p).isEmpty()) {
+                for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                    if (it != null) {
                         p.getInventory().addItem(it);
                     }
                 }
@@ -234,6 +234,20 @@ public class Game extends BukkitRunnable {
                     p1.getInventory().setItemInOffHand(new ItemStack(Material.COMPASS));
                     p1.setCompassTarget(new Location(p2.getWorld(),p2.getLocation().getX(),p2.getLocation().getY(),p2.getLocation().getZ()));
                     p2.sendActionBar(ChatColor.DARK_PURPLE + "[!]A hider is very close !");
+                }
+            }
+        }
+        if(time <= timeset*0.1){
+            Location l = t1.players.get(0).getLocation();
+            for(Player s : t2.players) {
+                if(s.getInventory().getItemInOffHand().getType() != Material.COMPASS){
+                    s.getInventory().setItemInOffHand(new ItemStack(Material.COMPASS));
+                }
+                for(Player h : t1.players) {
+                    if(s.getLocation().distance(h.getLocation()) < s.getLocation().distance(l)){
+                        l = h.getLocation();
+                    }
+                    s.setCompassTarget(l);
                 }
             }
         }

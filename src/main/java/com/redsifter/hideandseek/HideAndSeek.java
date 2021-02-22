@@ -413,13 +413,14 @@ public final class HideAndSeek extends JavaPlugin {
             }
             for(Player p : games[nb-1].t1.players){
                 p.getInventory().clear();
-                if(games[nb-1].savedInventories.get(p) != null) {
-                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
-                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                    for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                        if(it != null) {
                             p.getInventory().addItem(it);
                         }
                     }
                 }
+
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
             }
@@ -427,13 +428,14 @@ public final class HideAndSeek extends JavaPlugin {
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
-                if(games[nb-1].savedInventories.get(p) != null) {
-                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
-                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                    for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                        if (it != null) {
                             p.getInventory().addItem(it);
                         }
                     }
                 }
+
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
             }

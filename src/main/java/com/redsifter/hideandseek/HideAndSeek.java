@@ -340,7 +340,7 @@ public final class HideAndSeek extends JavaPlugin {
 
     public void setMysteryChests(Game g,boolean set){
         if(set) {
-            ArrayList<Location> random = randLocations(g.zone,12,10);
+            ArrayList<Location> random = randLocations(g.zone,g.SIZE*0.1,(int)(g.SIZE*0.01)+6);
             for(Location l : random) {
                 if(l.distance(g.zone) <= g.SIZE) {
                     ArmorStand a = (ArmorStand) (l).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);

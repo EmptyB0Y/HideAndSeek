@@ -61,7 +61,7 @@ public class Listen implements Listener {
                         bonus(pl);
                         useChest((ArmorStand) target);
                         target.getWorld().playSound(target.getLocation(), Sound.BLOCK_CHAIN_BREAK,5,5);
-                        target.getWorld().spawnParticle(Particle.REDSTONE,target.getLocation(),5);
+                        target.getWorld().spawnParticle(Particle.SMOKE_LARGE,target.getLocation(),5,Particle.SMOKE_LARGE.getDataType());
                     }
                 }
             }

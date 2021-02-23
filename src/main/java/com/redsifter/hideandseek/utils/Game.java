@@ -123,6 +123,7 @@ public class Game extends BukkitRunnable {
         if(t.equals("h")){
             if(!t1.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3)) || full){
                 if(!t1.full) {
+                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName());
                     t1.addPlayer(p);
                     return true;
                 }
@@ -134,6 +135,7 @@ public class Game extends BukkitRunnable {
         else if(t.equals("s")){
             if(!t2.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3)) || full){
                 if(!t2.full) {
+                    announcement(ChatColor.RED + "[+S]"+p.getName());
                     t2.addPlayer(p);
                     return true;
                 }

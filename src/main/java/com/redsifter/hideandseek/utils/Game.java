@@ -151,6 +151,7 @@ public class Game extends BukkitRunnable {
         if(t1.players.contains(p)){
             t1.remPlayer(p.getName());
             board.getTeam(""+nb).removeEntry(p.getName());
+            announcement(ChatColor.DARK_GREEN + "[-H]"+p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.setInvulnerable(false);
             p.getInventory().clear();
@@ -166,6 +167,7 @@ public class Game extends BukkitRunnable {
         }
         else if(t2.players.contains(p)){
             t2.remPlayer(p.getName());
+            announcement(ChatColor.RED + "[-S]"+p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.setInvulnerable(false);
             p.getInventory().clear();

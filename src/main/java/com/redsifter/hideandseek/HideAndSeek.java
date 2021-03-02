@@ -305,10 +305,7 @@ public final class HideAndSeek extends JavaPlugin {
     public boolean areaAvailableFor(Location l, int size, @Nullable Player p){
         for(Game g : games) {
             if(g != null) {
-                if (l.distance(g.zone) > size + g.SIZE) {
-                    return true;
-                }
-                else{
+                if (l.distance(g.zone) <= size + g.SIZE) {
                     p.sendMessage("There is no room for a game here ! Try to get a bit further from " + g.zone.getX() + " " + g.zone.getY() + " "  + g.zone.getZ());
                     return false;
                 }

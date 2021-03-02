@@ -14,7 +14,7 @@ commands:
     usage : /hsleave
   hsstartgame:
     description: Start a game you previously set
-    usage : /hsstartgame <n°> <time>
+    usage : /hsstartgame <n°> <time> <radius>
   hslistgames:
     description: List available games
     usage : /hslistgames

@@ -1,26 +1,33 @@
 name: HideAndSeek
-version: ${project.version}
+version: 2.1
+author: redsifter
 main: com.redsifter.hideandseek.HideAndSeek
-api-version: 1.16
+api-version: 1.17
 commands:
   hssetgame:
     description: Set a new game
     usage : /hssetgame [player1,player2,player3] [player1,player2...]
+    permission: hs.setgame
   hsjoin:
     description: Join a game
     usage : /hsjoin <(h | s)> [n°]
+    permission: hs.join
   hsleave:
     description: Leave current game
     usage : /hsleave
+    permission: hs.leave
   hsstartgame:
     description: Start a game you previously set
     usage : /hsstartgame <n°> <time> <radius>
+    permission: hs.startgame
   hslistgames:
     description: List available games
     usage : /hslistgames
+    permission: hs.listgames
   hscancelgame:
     description: Cancel currently owned game
     usage: /hscancelgame <n°>
+    permission: hs.cancelgame
   random:
     description: Generate random chest field
   saveinv:

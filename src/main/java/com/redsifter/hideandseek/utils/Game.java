@@ -28,6 +28,7 @@ public class Game extends BukkitRunnable {
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
     public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
     public HashMap<Player,Inventory> savedInventories = new HashMap<Player,Inventory>();
+    public ArrayList<Player> players = new ArrayList<>();
     public int SIZE;
     //SCOREBOARD
     private ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -41,6 +42,8 @@ public class Game extends BukkitRunnable {
         owner = p;
         zone = p.getLocation();
         this.main = hs;
+        players.addAll(t1.players);
+        players.addAll(t2.players);
     }
 
     public void run(){
@@ -118,13 +121,14 @@ public class Game extends BukkitRunnable {
 
     public boolean addPlayer(Player p,String t){
         if(t1.full && t2.full){
-            full = true;
+            return false;
         }
         if(t.equals("h")){
-            if(!t1.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3)) || full){
+            if(!t1.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t1.full) {
                     announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName());
                     t1.addPlayer(p);
+                    players.add(p);
                     return true;
                 }
                 else{
@@ -133,10 +137,11 @@ public class Game extends BukkitRunnable {
             }
         }
         else if(t.equals("s")){
-            if(!t2.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3)) || full){
+            if(!t2.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t2.full) {
                     announcement(ChatColor.RED + "[+S]"+p.getName());
                     t2.addPlayer(p);
+                    players.add(p);
                     return true;
                 }
                 else{
@@ -150,15 +155,19 @@ public class Game extends BukkitRunnable {
     public boolean remPlayer(Player p){
         if(t1.players.contains(p)){
             t1.remPlayer(p.getName());
-            board.getTeam(""+nb).removeEntry(p.getName());
+            if (board.getTeam(""+nb) != null) {
+                board.getTeam("" + nb).removeEntry(p.getName());
+            }
             announcement(ChatColor.DARK_GREEN + "[-H]"+p.getName());
             p.setGameMode(GameMode.SURVIVAL);
             p.setInvulnerable(false);
             p.getInventory().clear();
-            if (!this.savedInventories.get(p).isEmpty()) {
-                for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                    if (it != null) {
-                        p.getInventory().addItem(it);
+            if(this.savedInventories.get(p) != null) {
+                if (!this.savedInventories.get(p).isEmpty()) {
+                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                        if (it != null) {
+                            p.getInventory().addItem(it);
+                        }
                     }
                 }
             }
@@ -174,9 +183,11 @@ public class Game extends BukkitRunnable {
             for (PotionEffect effect : p.getActivePotionEffects()) {
                 p.removePotionEffect(effect.getType());
             }
-            if(!this.savedInventories.get(p).isEmpty()) {
-                for(ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                    p.getInventory().addItem(it);
+            if(this.savedInventories.get(p) != null) {
+                if (!this.savedInventories.get(p).isEmpty()) {
+                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                        p.getInventory().addItem(it);
+                    }
                 }
             }
             return true;
@@ -194,7 +205,7 @@ public class Game extends BukkitRunnable {
         for(Player p : t1.players){
             announcement(ChatColor.DARK_GREEN + p.getName() + "\n");
         }
-        main.cancelGame(nb);
+        main.cancelGame(nb+1);
     }
 
     public void seekersVictory(){
@@ -202,7 +213,7 @@ public class Game extends BukkitRunnable {
         for(Player p : t2.players){
             announcement(ChatColor.RED + p.getName() + "\n");
         }
-        main.cancelGame(nb);
+        main.cancelGame(nb+1);
     }
     public void pushBack(CustomTeam t){
         for(Player p : t.players){

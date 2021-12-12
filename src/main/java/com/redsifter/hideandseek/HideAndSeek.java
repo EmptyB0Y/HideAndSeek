@@ -14,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scoreboard.Team;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,265 +37,297 @@ public final class HideAndSeek extends JavaPlugin {
     public static Game[] games = new Game[MAXSIZE];
     public FileManager fm = new FileManager(this);
 
-
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command cmd, @Nonnull String label, @Nonnull String[] args) {
         if (sender instanceof Player) {
-            if (label.equals("hssetgame")) {
-                if (args.length > 2) {
-                    sender.sendMessage("Too much arguments...\n");
-                    return false;
-                }
-                if (countGames() == MAXSIZE) {
-                    sender.sendMessage("Too much games started at this time...\n");
-                    return false;
-                }
-                //ADD TEAMS
-                CustomTeam t1 = new CustomTeam(1, "hiders");
-                CustomTeam t2 = new CustomTeam(2, "seekers");
-                if (args.length > 0) {
-                    ArrayList<Player> lst = new ArrayList<Player>();
-                    args[0] = args[0] + ',';
-                    int length = args[0].length();
-                    char[] destArray = new char[length];
-                    String str = "";
-                    int i = 0;
-                    //ADD FIRST TEAM
-                    if (args.length >= 1) {
-                        args[0].getChars(0, length, destArray, 0);
-                        str = "";
-                        for (char t : destArray) {
-                            if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
-                                    lst.add(Bukkit.getPlayerExact(str.trim()));
-                                    Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
-                                    str = "";
-                                } else {
-                                    sender.sendMessage(str + " is either already in a game, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
-                                    str = "";
-                                }
-                            } else {
-                                str = str + t;
-                            }
-                            i++;
-                        }
-                        t1.setPlayers(lst);
-                        lst.clear();
-                        i = 0;
-                    }
-                    //ADD SECOND TEAM
-                    if (args.length == 2) {
-                        args[1] = args[1] + ',';
-                        length = args[1].length();
-                        destArray = new char[length];
-                        args[1].getChars(0, length, destArray, 0);
-                        str = "";
-                        for (char t : destArray) {
-                            if (t == ',') {
-                                if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && !t1.players.contains(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
-                                    lst.add(Bukkit.getPlayerExact(str.trim()));
-                                    Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
-                                    str = "";
-                                } else {
-                                    sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
-                                    str = "";
-                                }
-                            } else {
-                                str = str + t;
-                            }
-                            i++;
-                        }
-                        t2.setPlayers(lst);
-                    }
-                }
-                if (!areaAvailableFor(((Player) sender).getLocation(), (t2.players.size() + t1.players.size()) * 30, (Player) sender)) {
-                    return false;
-                }
-                //INITALIZE GAME
-                int game = 0;
-                if (countGames() > 0) {
-                    game = countGames() + 1;
-                }
-                games[game] = new Game(t1, t2, countGames() + 1, (Player) sender, this);
-                sender.sendMessage("You initalized game n° " + countGames() + " !\n");
-            } else if (label.equals("hsjoin")) {
-                if (args.length < 1) {
-                    sender.sendMessage("Missing arguments...\n");
-                    return false;
-                } else if (args.length == 2) {
-                    if (Integer.parseInt(args[1]) > 3 || Integer.parseInt(args[1]) < 1) {
-                        sender.sendMessage("Not a valid game number (1 to 3)\n");
+            switch (label) {
+                case "hssetgame":
+                    if (args.length > 2) {
+                        sender.sendMessage("Too much arguments...\n");
                         return false;
                     }
-                    Player p = (Player) sender;
-                    if (games[Integer.parseInt(args[1]) - 1] != null && !games[Integer.parseInt(args[1])].hasStarted && !games[Integer.parseInt(args[1])].full && (!games[Integer.parseInt(args[1]) - 1].t1.players.contains(p) && !games[Integer.parseInt(args[1]) - 1].t2.players.contains(p))) {
-                        if (args[0].equals("h")) {
-                            if (games[Integer.parseInt(args[1])].addPlayer((Player) sender, "h")) {
-                                sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1]) - 1].nb + " as hider !\n");
-                                return true;
-                            }
-                        } else if (args[0].equals("s")) {
-                            if (games[Integer.parseInt(args[1])].addPlayer((Player) sender, "s")) {
-                                sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1]) - 1].nb + " as seeker !\n");
-                                return true;
-                            }
-                        }
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "This game either has already started, is not set, or has no more room for you in the selected team !\n");
+                    if (countGames() == MAXSIZE) {
+                        sender.sendMessage("Too much games started at this time...\n");
                         return false;
                     }
-                } else if (args.length == 1) {
-                    if (args[0].equals("h")) {
-                        if (countGames() >= 1) {
-                            for (Game g : games) {
-                                if (!g.hasStarted) {
-                                    if (g.addPlayer((Player) sender, "h")) {
-                                        sender.sendMessage("Successfuly joined game n° " + g.nb + " as hider !\n");
-                                        return true;
+                    //ADD TEAMS
+                    CustomTeam t1 = new CustomTeam(1, "hiders");
+                    CustomTeam t2 = new CustomTeam(2, "seekers");
+                    if (args.length > 0) {
+                        ArrayList<Player> lst = new ArrayList<>();
+                        args[0] = args[0] + ',';
+                        int length = args[0].length();
+                        char[] destArray = new char[length];
+                        String str = "";
+                        int i = 0;
+                        //ADD FIRST TEAM
+                        if (args.length == 1) {
+                            args[0].getChars(0, length, destArray, 0);
+                            str = "";
+                            for (char t : destArray) {
+                                if (t == ',') {
+                                    System.out.println(str.trim());
+                                    if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
+                                        lst.add(Bukkit.getPlayerExact(str.trim()));
+                                        Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
+                                        str = "";
                                     } else {
-                                        sender.sendMessage("Failed to join game n° " + g.nb + "...");
+                                        sender.sendMessage(str + " is either already in a game, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
+                                        str = "";
                                     }
                                 }
-                            }
-                            sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
-                            return false;
-                        }
-                    } else if (args[0].equals("s")) {
-                        if (countGames() >= 1) {
-                            for (Game g : games) {
-                                if (!g.hasStarted) {
-                                    if (g.addPlayer((Player) sender, "s")) {
-                                        sender.sendMessage("Successfuly joined game n°" + g.nb + " as seeker !\n");
-                                        return true;
-                                    } else {
-                                        sender.sendMessage("Failed to join game n° " + g.nb + "...");
-                                    }
+                                else {
+                                    str = str + t;
                                 }
+                                i++;
                             }
-                            sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
-                            return false;
+                            t1.setPlayers(lst);
+                            lst.clear();
+                            i = 0;
                         }
-                    } else {
-                        sender.sendMessage("Choose between h and s\n");
+                        //ADD SECOND TEAM
+                        if (args.length == 2) {
+                            args[1] = args[1] + ',';
+                            length = args[1].length();
+                            destArray = new char[length];
+                            args[1].getChars(0, length, destArray, 0);
+                            str = "";
+                            for (char t : destArray) {
+                                if (t == ',') {
+                                    System.out.println(str);
+                                    if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && !t1.players.contains(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
+                                        lst.add(Bukkit.getPlayerExact(str.trim()));
+                                        Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
+                                        str = "";
+                                    } else {
+                                        sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
+                                        str = "";
+                                    }
+                                } else {
+                                    str = str + t;
+                                }
+                                i++;
+                            }
+                            t2.setPlayers(lst);
+                        }
                     }
-                } else {
-                    sender.sendMessage("Usage : hsjoin <(h | s)> [n°]");
-                }
-            } else if (label.equals("hsleave")) {
-                if (countGames() >= 1) {
-                    for (Game g : games) {
-                        if (g.t1.players.contains((Player) sender)) {
-                            if (g.remPlayer((Player) sender)) {
-                                sender.sendMessage("Successfuly left game n°" + g.nb + " !\n");
-                                return true;
-                            }
-                        } else if (g.t2.players.contains((Player) sender)) {
-                            if (g.remPlayer((Player) sender)) {
-                                sender.sendMessage("Successfuly left game n°" + g.nb + " !\n");
-                                return true;
+                    if (!areaAvailableFor(((Player) sender).getLocation(), (t2.players.size() + t1.players.size()) * 30, (Player) sender)) {
+                        return false;
+                    }
+                    //INITALIZE GAME
+                    int game = 0;
+                    if (countGames() > 0) {
+                        game = countGames() + 1;
+                    }
+                    games[game] = new Game(t1, t2, game, (Player) sender, this);
+                    System.out.println(games[game].players);
+                    System.out.println(games[game].t1.players);
+                    System.out.println(games[game].t2.players);
+
+                    sender.sendMessage("You initalized game n° " + countGames() + " !\n");
+
+                    break;
+                case "hsjoin":
+                    if (args.length < 1) {
+                        sender.sendMessage("Missing arguments...\n");
+                        return false;
+                    } else if (args.length == 2) {
+
+                        if (Integer.parseInt(args[1]) > 3 || Integer.parseInt(args[1]) < 1) {
+                            sender.sendMessage("Not a valid game number (1 to 3)\n");
+                            return false;
+                        }
+
+                        Player p = (Player) sender;
+                        if (games[(Integer.parseInt(args[1]) - 1)] == null) {
+                            return false;
+                        }
+                        if (!games[(Integer.parseInt(args[1]) - 1)].hasStarted && !games[(Integer.parseInt(args[1]) - 1)].full && !games[(Integer.parseInt(args[1]) - 1)].players.contains(p)) {
+                            if (args[0].equals("h")) {
+                                if (games[(Integer.parseInt(args[1]) - 1)].addPlayer((Player) sender, "h")) {
+                                    sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1])].nb + " as hider !\n");
+                                    return true;
+                                }
+                            } else if (args[0].equals("s")) {
+                                if (games[(Integer.parseInt(args[1]) - 1)].addPlayer((Player) sender, "s")) {
+                                    sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1])].nb + " as seeker !\n");
+                                    return true;
+                                }
                             }
                         } else {
-                            sender.sendMessage("You aren't in any games...\n");
+                            sender.sendMessage(ChatColor.RED + "This game either has already started, is not set, or has no more room for you in the selected team !\n");
                             return false;
                         }
+                    } else if (args.length == 1) {
+                        Player p = (Player) sender;
+                        if (countGames() >= 1) {
 
+                            if (args[0].equals("h")) {
+                                for (Game g : games) {
+                                    if (g != null) {
+                                        if (!g.hasStarted && !g.full && !g.players.contains(p)) {
+
+                                            if (g.addPlayer((Player) sender, "h")) {
+                                                sender.sendMessage("Successfuly joined game n° " + (g.nb + 1) + " as hider !\n");
+                                                return true;
+                                            } else {
+                                                sender.sendMessage("Failed to join game n° " + (g.nb + 1) + "...");
+                                            }
+
+                                        }
+                                    }
+                                }
+                                sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
+                                return false;
+
+                            } else if (args[0].equals("s")) {
+                                for (Game g : games) {
+                                    if (g != null) {
+                                        if (!g.hasStarted && !g.full && !g.players.contains(p)) {
+
+                                            if (g.addPlayer((Player) sender, "s")) {
+                                                sender.sendMessage("Successfuly joined game n°" + (g.nb + 1) + " as seeker !\n");
+                                                return true;
+                                            } else {
+                                                sender.sendMessage("Failed to join game n° " + (g.nb + 1) + "...");
+                                            }
+                                        }
+                                    }
+                                }
+                                sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
+                                return false;
+                            } else {
+                                sender.sendMessage("Choose between [h] (hider) and [s] (seekers)\n");
+                            }
+                        }
+                    } else {
+                        sender.sendMessage("Usage : hsjoin <(h | s)> [n°]");
                     }
-                } else {
-                    sender.sendMessage("There aren't any games...\n");
-                    return false;
-                }
-            } else if (label.equals("hslistgames")) {
-                sender.sendMessage("There are " + countGames() + " games available games right now.\n");
-            } else if (label.equals("hsstartgame")) {
-                if (args.length < 3) {
-                    sender.sendMessage("Missing arguments...\n");
-                    return false;
-                } else if (Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1200) {
-                    sender.sendMessage("The time must be contained between 200 and 1200\n");
-                    return false;
-                }
-                if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 800) {
-                    sender.sendMessage("The limit must be contained between 120 and 800\n");
-                    return false;
-                }
-                if (countGames() >= 1) {
+
+                    break;
+                case "hsleave":
+                    if (countGames() >= 1) {
+                        for (Game g : games) {
+                            if (g.t1.players.contains((Player) sender)) {
+                                if (g.remPlayer((Player) sender)) {
+                                    sender.sendMessage("Successfuly left game n°" + (g.nb + 1) + " !\n");
+                                    return true;
+                                }
+                            } else if (g.t2.players.contains((Player) sender)) {
+                                if (g.remPlayer((Player) sender)) {
+                                    sender.sendMessage("Successfuly left game n°" + (g.nb + 1) + " !\n");
+                                    return true;
+                                }
+                            } else {
+                                sender.sendMessage("You aren't in any games...\n");
+                                return false;
+                            }
+
+                        }
+                    } else {
+                        sender.sendMessage("There aren't any games...\n");
+                        return false;
+                    }
+                    break;
+                case "hslistgames":
+                    sender.sendMessage("There are " + countGames() + " games available games right now.\n");
+                    break;
+                case "hsstartgame":
+                    if (args.length < 3) {
+                        sender.sendMessage("Missing arguments...\n");
+                        return false;
+                    } else if (Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1200) {
+                        sender.sendMessage("The time must be contained between 200 and 1200\n");
+                        return false;
+                    }
+                    if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 800) {
+                        sender.sendMessage("The limit must be contained between 120 and 800\n");
+                        return false;
+                    }
+                    if (countGames() >= 1) {
+                        if (games[Integer.parseInt(args[0]) - 1].owner != (Player) sender) {
+                            sender.sendMessage("You are not the owner of this game...\n");
+                            return false;
+                        }
+                        if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]), Integer.parseInt(args[2]))) {
+                            sender.sendMessage("Couldn't start game, difference between the two teams is too high !\n");
+                            return false;
+                        } else {
+                            sender.sendMessage("Successfully started game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
+                            setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                        }
+                    } else {
+                        sender.sendMessage("There is no game available at the moment or you didn't specify the right team option (h | s).\n");
+                    }
+                    break;
+                case "hscancelgame":
+                    if (args.length != 1) {
+                        sender.sendMessage("You must specify a number\n");
+                        return false;
+                    }
                     if (games[Integer.parseInt(args[0]) - 1].owner != (Player) sender) {
                         sender.sendMessage("You are not the owner of this game...\n");
                         return false;
                     }
-                    if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]), Integer.parseInt(args[2]))) {
-                        sender.sendMessage("Couldn't start game, difference between the two teams is too high !\n");
+                    sender.sendMessage("Successfully cancelled game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
+                    cancelGame(games[Integer.parseInt(args[0]) - 1].nb + 1);
+                    break;
+                case "random":
+                    if (args.length != 2) {
                         return false;
-                    } else {
-                        sender.sendMessage("Successfully started game n°" + games[Integer.parseInt(args[0]) - 1].nb + " !\n");
-                        setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                    } else if (Integer.parseInt(args[0]) > 10 && Integer.parseInt(args[0]) > 20) {
+                        return false;
                     }
-                } else {
-                    sender.sendMessage("There is no game available at the moment or you didn't specify the right team option (h | s).\n");
+                    ArrayList<Location> random = randLocations(((Player) sender).getLocation(), Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+                    for (Location l : random) {
+                        ArmorStand a = (ArmorStand) ((Player) sender).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+                        ItemStack skull = new ItemStack(Material.CHEST, 1);
+                        a.getEquipment().setHelmet(skull);
+                        a.setInvisible(true);
+                        a.setCustomNameVisible(true);
+                        a.setCustomName(ChatColor.GOLD + "[?]");
+                        a.setInvulnerable(true);
+                        a.setSmall(true);
+                        a.setSilent(true);
+                    }
+                    break;
+                case "saveinv": {
+                    this.fm.reloadConfig();
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        int count = 0;
+                        this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+                        for (ItemStack it : p.getInventory()) {
+                            if (it != null) {
+                                count++;
+                                this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+                            }
+                        }
+                        this.fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+                    }
+                    try {
+                        this.fm.saveConfig();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
                 }
-            } else if (label.equals("hscancelgame")) {
-                if (args.length != 1) {
-                    sender.sendMessage("You must specify a number\n");
-                    return false;
-                }
-                if (games[Integer.parseInt(args[0]) - 1].owner != (Player) sender) {
-                    sender.sendMessage("You are not the owner of this game...\n");
-                    return false;
-                }
-                sender.sendMessage("Successfully cancelled game n°" + games[Integer.parseInt(args[0]) - 1].nb + " !\n");
-                cancelGame(games[Integer.parseInt(args[0]) - 1].nb);
-            } else if (label.equals("random")) {
-                if (args.length != 2) {
-                    return false;
-                } else if (Integer.parseInt(args[0]) > 10 && Integer.parseInt(args[0]) > 20) {
-                    return false;
-                }
-                ArrayList<Location> random = randLocations(((Player) sender).getLocation(), Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-                for (Location l : random) {
-                    ArmorStand a = (ArmorStand) ((Player) sender).getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
-                    ItemStack skull = new ItemStack(Material.CHEST, 1);
-                    a.getEquipment().setHelmet(skull);
-                    a.setInvisible(true);
-                    a.setCustomNameVisible(true);
-                    a.setCustomName(ChatColor.GOLD + "[?]");
-                    a.setInvulnerable(true);
-                    a.setSmall(true);
-                    a.setSilent(true);
-                }
-            } else if (label.equals("saveinv")) {
-                ArrayList<Player> inv = new ArrayList<Player>();
-                this.fm.reloadConfig();
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    int count = 0;
-                    this.fm.getConfig().set(p.getUniqueId().toString()+".inventory",null);
-                    for(ItemStack it : p.getInventory()) {
-                        if(it != null) {
-                            count++;
-                            this.fm.getConfig().set(p.getUniqueId().toString()+".inventory."+count, it);
+                case "loadinv": {
+                    ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
+                    this.fm.reloadConfig();
+                    int nbr = this.fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".count");
+                    System.out.println(nbr);
+                    for (int i = 1; i <= nbr; i++) {
+                        inv.add(this.fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".inventory." + i));
+                        System.out.println(inv.get(i - 1));
+                    }
+
+                    for (ItemStack it : inv) {
+                        if (it != null) {
+                            ((Player) sender).getInventory().addItem(it);
+
                         }
                     }
-                    this.fm.getConfig().set(p.getUniqueId().toString()+".count", count);
-                }
-                try {
-                    this.fm.saveConfig();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            } else if (label.equals("loadinv")) {
-                ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
-                this.fm.reloadConfig();
-                int nbr = this.fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString()+".count");
-                System.out.println(nbr);
-                for(int i = 1;i <= nbr;i++){
-                    inv.add(this.fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString()+".inventory."+i));
-                    System.out.println(inv.get(i-1));
-                }
-
-                for(ItemStack it : inv) {
-                    if(it != null) {
-                        ((Player) sender).getInventory().addItem(it);
-
-                    }
+                    break;
                 }
             }
 
@@ -317,7 +350,7 @@ public final class HideAndSeek extends JavaPlugin {
     public static boolean playerInGame(Player pl){
         for(Game g : games){
             if(g != null) {
-                if (g.t1.players.contains(pl) || g.t2.players.contains(pl)) {
+                if (g.players.contains(pl)) {
                     return true;
                 }
             }
@@ -327,8 +360,8 @@ public final class HideAndSeek extends JavaPlugin {
 
     public int countGames(){
         int count = 0;
-        for(int i = 0;i < games.length;i++){
-            if(games[i] != null){
+        for (Game game : games) {
+            if (game != null) {
                 count++;
             }
         }
@@ -410,10 +443,13 @@ public final class HideAndSeek extends JavaPlugin {
             }
             for(Player p : games[nb-1].t1.players){
                 p.getInventory().clear();
-                if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
-                    for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
-                        if(it != null) {
-                            p.getInventory().addItem(it);
+                if (games[nb - 1].savedInventories.get(p) != null) {
+
+                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                            if (it != null) {
+                                p.getInventory().addItem(it);
+                            }
                         }
                     }
                 }
@@ -426,10 +462,12 @@ public final class HideAndSeek extends JavaPlugin {
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
-                if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
-                    for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
-                        if (it != null) {
-                            p.getInventory().addItem(it);
+                if (games[nb - 1].savedInventories.size() > 0) {
+                    if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
+                            if (it != null) {
+                                p.getInventory().addItem(it);
+                            }
                         }
                     }
                 }

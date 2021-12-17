@@ -13,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -164,6 +165,16 @@ public class Listen implements Listener {
     public void onConnect(PlayerJoinEvent event){
         HideAndSeek.loadinv(event.getPlayer());
     }*/
+    @EventHandler
+    public void onPlayerSit(VehicleEnterEvent event){
+        if(event.getEntered() instanceof Player && event.getVehicle() instanceof Arrow){
+            Player pl = (Player) event.getEntered();
+            if(HideAndSeek.playerInGame(pl)){
+                event.setCancelled(true);
+                pl.sendActionBar(ChatColor.RED + "[!]You can't sit during a game");
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerStarve(FoodLevelChangeEvent event){

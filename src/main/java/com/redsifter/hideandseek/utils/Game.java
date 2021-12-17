@@ -279,7 +279,7 @@ public class Game extends BukkitRunnable {
                 Location closest = null;
                 if(t1.players.contains(p)){
                     for (Player pl : t2.players){
-                        if(p.getLocation().distance(pl.getLocation()) <= 25){
+                        if(p.getLocation().distance(pl.getLocation()) <= 55){
                             if (closest != null){
                                 if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
                                     closest = pl.getLocation();
@@ -294,12 +294,13 @@ public class Game extends BukkitRunnable {
                                 closest.setPitch(0);
                                 p.setCompassTarget(closest);
                             }
+                            p.sendActionBar(ChatColor.DARK_PURPLE + "[!] SEEKER DETECTED AT "+((int)p.getLocation().distance(closest))+" BLOCKS [!]");
                         }
                     }
                 }
                 else{
                     for (Player pl : t2.players){
-                        if(p.getLocation().distance(pl.getLocation()) <= 25){
+                        if(p.getLocation().distance(pl.getLocation()) <= 55){
                             if (closest != null){
                                 if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
                                     closest = pl.getLocation();
@@ -314,6 +315,7 @@ public class Game extends BukkitRunnable {
                                 closest.setPitch(0);
                                 p.setCompassTarget(closest);
                             }
+                            p.sendActionBar(ChatColor.DARK_PURPLE + "[!] HIDER DETECTED AT "+((int)p.getLocation().distance(closest))+" BLOCKS [!]");
                         }
                     }
                 }

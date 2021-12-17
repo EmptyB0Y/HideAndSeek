@@ -29,7 +29,11 @@ public final class HideAndSeek extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        this.getLogger().info("Disabled HideAndSeek\n");
+        for (Game g : HideAndSeek.games){
+            if(g != null) {
+                cancelGame(g.nb + 1);
+            }
+        }
     }
     public static int MAXPLAYERS = 10;
     public static int MAXSIZE = 3;

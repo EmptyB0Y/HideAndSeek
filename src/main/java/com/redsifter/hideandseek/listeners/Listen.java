@@ -69,6 +69,24 @@ public class Listen implements Listener {
                     }
                 }
             }
+            //THERMO-SIGNAL BONUS
+            else if(pl.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR){
+                for(Game g : HideAndSeek.games){
+                    if(g != null){
+                        if(g.t1.players.contains(pl)){
+                            for(Player s : g.t2.players){
+                                s.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
+                            }
+                        }
+                        else{
+                            pl.teleport(g.zone);
+                            for(Player h : g.t1.players){
+                                h.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -192,16 +210,19 @@ public class Listen implements Listener {
 
     public void bonus(Player p) {
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        double b = HideAndSeek.randDouble(0, 29);
+        double b = HideAndSeek.randDouble(0, 33);
         if (p.getInventory().contains(Material.GLASS_BOTTLE)) {
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
         if (0 <= b && b <= 7) {
             p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
+            p.sendMessage(ChatColor.ITALIC + "[?]THROW : Teleports you to the landing location");
             p.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
         }
         else if (7 < b && b <= 19) {
-            p.sendMessage(ChatColor.DARK_RED + "[CROSSBOW]");
+            p.sendMessage(ChatColor.YELLOW + "[SPECTRAL ARROWS]");
+            p.sendMessage(ChatColor.ITALIC + "[?]SHOOT : The person you shot will glow for a small amount of time");
+            p.sendMessage(ChatColor.ITALIC + "[!]Works only on opposing team members");
             if (p.getInventory().contains(Material.CROSSBOW)) {
                 p.getInventory().remove(Material.CROSSBOW);
             }
@@ -210,6 +231,7 @@ public class Listen implements Listener {
         }
         else if (19 < b && b <= 25) {
             p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
+            p.sendMessage(ChatColor.ITALIC + "[?]DRINK : Makes you go super fast");
             ItemStack potion = new ItemStack(Material.POTION, 1);
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
             meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, 150, 5), true);
@@ -219,6 +241,7 @@ public class Listen implements Listener {
         }
         else if (25 < b && b <= 27) {
             p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");
+            p.sendMessage(ChatColor.ITALIC + "[?]INSTANT : Enables you to fly");
             p.setAllowFlight(true);
             p.setFlying(true);
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -231,9 +254,12 @@ public class Listen implements Listener {
         }
         else if (27 < b && b <= 29){
             p.sendMessage(ChatColor.DARK_PURPLE + "[RADAR]");
+            p.sendMessage(ChatColor.ITALIC + "[?]HOLD : Reveal the nearest opposing team member's position");
+            p.sendMessage(ChatColor.ITALIC + "[!]25 blocks ahead or less");
             ItemStack compass = new ItemStack(Material.COMPASS);
             ItemMeta meta = compass.getItemMeta();
             meta.setDisplayName(ChatColor.DARK_PURPLE + "RADAR");
+            compass.setItemMeta(meta);
             p.getInventory().addItem(compass);
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             scheduler.scheduleSyncDelayedTask(main, new Runnable() {
@@ -241,6 +267,26 @@ public class Listen implements Listener {
                     p.getInventory().remove(compass);
                 }
             }, 1000L);
+        }
+        else if (29 < b && b <= 32) {
+            p.sendMessage(ChatColor.GRAY + "[STEALTH POTION]");
+            p.sendMessage(ChatColor.ITALIC + "[?]DRINK : Makes you invisible");
+            ItemStack potion = new ItemStack(Material.POTION, 1);
+            PotionMeta meta = (PotionMeta) potion.getItemMeta();
+            meta.addCustomEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 250, 1), true);
+            meta.setDisplayName(ChatColor.GRAY + "STEALTH");
+            potion.setItemMeta(meta);
+            p.getInventory().addItem(potion);
+        }
+        else if (32 < b && b <= 33) {
+            p.sendMessage(ChatColor.GOLD + "THERMO-SIGNAL");
+            p.sendMessage(ChatColor.ITALIC + "[?]LEFT-CLICK : Reveal all the opposing team members's positions");
+            p.sendMessage(ChatColor.ITALIC + "[!]Teleport you to game spawn if you are a seeker");
+            ItemStack netherstar = new ItemStack(Material.NETHER_STAR);
+            ItemMeta meta = netherstar.getItemMeta();
+            meta.setDisplayName(ChatColor.GOLD + "THERMO-SIGNAL");
+            netherstar.setItemMeta(meta);
+            p.getInventory().addItem(netherstar);
         }
     }
 

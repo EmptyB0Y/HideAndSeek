@@ -458,7 +458,7 @@ public final class HideAndSeek extends JavaPlugin {
         for(i = 0;i < Matrice.length;i++){
             for(j = 0;j < Matrice[i].length;j++){
                 Matrice[i][j].setX(Matrice[i][j].getX()+randDouble(-5,5));
-                Matrice[i][j].setY(Matrice[i][j].getY()+randDouble(-5,10));
+                Matrice[i][j].setY(Matrice[i][j].getY()+randDouble(-5, radius*10));
                 Matrice[i][j].setZ(Matrice[i][j].getZ()+randDouble(-5,5));
                 if(random.nextBoolean() && Matrice[i][j].getBlock().getType() == Material.AIR){
                     randLocs.add(Matrice[i][j]);

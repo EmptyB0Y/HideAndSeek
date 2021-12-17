@@ -152,45 +152,48 @@ public class Game extends BukkitRunnable {
         return false;
     }
 
-    public boolean remPlayer(Player p){
-        if(t1.players.contains(p)){
-            t1.remPlayer(p.getName());
-            if (board.getTeam(""+nb) != null) {
-                board.getTeam("" + nb).removeEntry(p.getName());
-            }
-            announcement(ChatColor.DARK_GREEN + "[-H]"+p.getName());
-            p.setGameMode(GameMode.SURVIVAL);
-            p.setInvulnerable(false);
-            p.getInventory().clear();
-            if(this.savedInventories.get(p) != null) {
-                if (!this.savedInventories.get(p).isEmpty()) {
-                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                        if (it != null) {
+    public boolean remPlayer(Player p) {
+        if (players.contains(p)) {
+            players.remove(p);
+
+            if (t1.players.contains(p)) {
+                t1.remPlayer(p.getName());
+                if (board.getTeam("" + nb) != null) {
+                    board.getTeam("" + nb).removeEntry(p.getName());
+                }
+                announcement(ChatColor.DARK_GREEN + "[-H]" + p.getName());
+                p.setGameMode(GameMode.SURVIVAL);
+                p.setInvulnerable(false);
+                p.getInventory().clear();
+                if (this.savedInventories.get(p) != null) {
+                    if (!this.savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
+                            if (it != null) {
+                                p.getInventory().addItem(it);
+                            }
+                        }
+                    }
+                }
+                return true;
+
+            } else if (t2.players.contains(p)) {
+                t2.remPlayer(p.getName());
+                announcement(ChatColor.RED + "[-S]" + p.getName());
+                p.setGameMode(GameMode.SURVIVAL);
+                p.setInvulnerable(false);
+                p.getInventory().clear();
+                for (PotionEffect effect : p.getActivePotionEffects()) {
+                    p.removePotionEffect(effect.getType());
+                }
+                if (this.savedInventories.get(p) != null) {
+                    if (!this.savedInventories.get(p).isEmpty()) {
+                        for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
                             p.getInventory().addItem(it);
                         }
                     }
                 }
+                return true;
             }
-            return true;
-
-        }
-        else if(t2.players.contains(p)){
-            t2.remPlayer(p.getName());
-            announcement(ChatColor.RED + "[-S]"+p.getName());
-            p.setGameMode(GameMode.SURVIVAL);
-            p.setInvulnerable(false);
-            p.getInventory().clear();
-            for (PotionEffect effect : p.getActivePotionEffects()) {
-                p.removePotionEffect(effect.getType());
-            }
-            if(this.savedInventories.get(p) != null) {
-                if (!this.savedInventories.get(p).isEmpty()) {
-                    for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                        p.getInventory().addItem(it);
-                    }
-                }
-            }
-            return true;
         }
         return false;
     }

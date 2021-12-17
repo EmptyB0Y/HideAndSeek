@@ -2,6 +2,7 @@ package com.redsifter.hideandseek.listeners;
 
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import com.redsifter.hideandseek.HideAndSeek;
+import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -18,6 +19,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Listen implements Listener {
@@ -123,15 +126,56 @@ public class Listen implements Listener {
 
     @EventHandler
     public void onDisconnect(PlayerQuitEvent event){
+        for(Game g : HideAndSeek.games){
+            if (!g.equals(null)) {
+                if (g.owner.equals(event.getPlayer())) {
+                    g.announcement(ChatColor.RED + "[!] The game was cancelled because the owner left without starting it [!]");
+                    HideAndSeek.cancelGame(g.nb + 1);
+                    return;
+                }
+            }
+        }
         if(HideAndSeek.playerInGame(event.getPlayer())){
             removeFromGame(event.getPlayer());
+            //HideAndSeek.saveinv(event.getPlayer());
         }
     }
+
+    /*@EventHandler
+    public void onConnect(PlayerJoinEvent event){
+        HideAndSeek.loadinv(event.getPlayer());
+    }*/
 
     @EventHandler
     public void onPlayerStarve(FoodLevelChangeEvent event){
         if(HideAndSeek.playerInGame((Player)event.getEntity())){
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerTrip(PlayerMoveEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            if (event.getPlayer().getLocation().getY() < 0 || event.getPlayer().getLocation().getBlock().getType() == Material.LAVA){
+                for (Game g : HideAndSeek.games){
+                    if (!g.equals(null)) {
+                        if (g.players.contains(event.getPlayer())) {
+                            event.getPlayer().teleport(g.zone);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event){
+        if(HideAndSeek.playerInGame(event.getPlayer())){
+            for (Game g : HideAndSeek.games){
+                if (g.players.contains(event.getPlayer())){
+                    event.getPlayer().teleport(g.zone);
+                }
+            }
         }
     }
 
@@ -160,7 +204,7 @@ public class Listen implements Listener {
                 p.getInventory().remove(Material.CROSSBOW);
             }
             p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
-            p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 8));
+            p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 5));
         } else if (19 < b && b <= 25) {
             p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
             ItemStack potion = new ItemStack(Material.POTION, 1);

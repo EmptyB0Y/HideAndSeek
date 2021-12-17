@@ -24,13 +24,12 @@ public final class HideAndSeek extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        System.out.println("Enabled HideAndSeek\n");
         this.getServer().getPluginManager().registerEvents(new Listen(this), this);
     }
 
     @Override
     public void onDisable() {
-        System.out.println("Disabled HideAndSeek\n");
+        this.getLogger().info("Disabled HideAndSeek\n");
     }
     public static int MAXPLAYERS = 10;
     public static int MAXSIZE = 3;
@@ -291,20 +290,20 @@ public final class HideAndSeek extends JavaPlugin {
                     }
                     break;
                 case "saveinv": {
-                    this.fm.reloadConfig();
+                    fm.reloadConfig();
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         int count = 0;
-                        this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+                        fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
                         for (ItemStack it : p.getInventory()) {
                             if (it != null) {
                                 count++;
-                                this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+                                fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
                             }
                         }
-                        this.fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+                        fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
                     }
                     try {
-                        this.fm.saveConfig();
+                        fm.saveConfig();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -313,12 +312,10 @@ public final class HideAndSeek extends JavaPlugin {
                 }
                 case "loadinv": {
                     ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
-                    this.fm.reloadConfig();
-                    int nbr = this.fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".count");
-                    System.out.println(nbr);
+                    fm.reloadConfig();
+                    int nbr = fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".count");
                     for (int i = 1; i <= nbr; i++) {
-                        inv.add(this.fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".inventory." + i));
-                        System.out.println(inv.get(i - 1));
+                        inv.add(fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".inventory." + i));
                     }
 
                     for (ItemStack it : inv) {
@@ -334,6 +331,44 @@ public final class HideAndSeek extends JavaPlugin {
         }
         return true;
     }
+
+    /*public void saveinv(Player p) {
+        this.fm.reloadConfig();
+        int count = 0;
+        this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+        for (ItemStack it : p.getInventory()) {
+            if (it != null) {
+                count++;
+                this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+            }
+        }
+        this.fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+        try {
+            this.fm.saveConfig();
+        } catch (
+                IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadinv(Player p) {
+        if (this.fm.getConfig().contains(p.getUniqueId().toString())) {
+
+            ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
+            this.fm.reloadConfig();
+            int nbr = this.fm.getConfig().getInt(p.getUniqueId().toString() + ".count");
+            for (int i = 1; i <= nbr; i++) {
+                inv.add(this.fm.getConfig().getItemStack(p.getUniqueId().toString() + ".inventory." + i));
+            }
+
+            for (ItemStack it : inv) {
+                if (it != null) {
+                    p.getInventory().addItem(it);
+
+                }
+            }
+        }
+    }*/
 
     public boolean areaAvailableFor(Location l, int size, @Nullable Player p){
         for(Game g : games) {
@@ -368,7 +403,7 @@ public final class HideAndSeek extends JavaPlugin {
         return count;
     }
 
-    public void setMysteryChests(Game g,boolean set){
+    public static void setMysteryChests(Game g, boolean set){
         if(set) {
             ArrayList<Location> random = randLocations(g.zone,g.SIZE*0.1,(int)(g.SIZE*0.01)+6);
             for(Location l : random) {
@@ -399,7 +434,7 @@ public final class HideAndSeek extends JavaPlugin {
         return min + Math.random() * ((max - min));
     }
 
-    public ArrayList<Location> randLocations(Location l, double radius, int density){
+    public static ArrayList<Location> randLocations(Location l, double radius, int density){
         Random random = new Random();
         Location[][] Matrice = new Location[density*2][density*2];
         float yaw = 0;
@@ -436,7 +471,7 @@ public final class HideAndSeek extends JavaPlugin {
     return randLocs;
     }
 
-    public void cancelGame(int nb){
+    public static void cancelGame(int nb){
         if(games[nb-1] != null){
             if(games[nb-1].hasStarted) {
                 games[nb - 1].cancel();
@@ -477,7 +512,6 @@ public final class HideAndSeek extends JavaPlugin {
             }
             setMysteryChests(games[nb-1],false);
             for(Team t : games[nb-1].board.getTeams()) {
-                //games[nb - 1].board.getTeam(String.valueOf(games[nb - 1].nb)).unregister();
                 t.unregister();
             }
             games[nb-1].t1.flush();

@@ -132,7 +132,7 @@ public final class HideAndSeek extends JavaPlugin {
                     } else if (args.length == 2) {
 
                         if (Integer.parseInt(args[1]) > 3 || Integer.parseInt(args[1]) < 1) {
-                            sender.sendMessage("Not a valid game number (1 to 3)\n");
+                            sender.sendMessage("Not a valid game number (1 to "+MAXSIZE+")\n");
                             return false;
                         }
 

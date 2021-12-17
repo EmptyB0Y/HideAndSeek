@@ -53,6 +53,7 @@ public class Game extends BukkitRunnable {
         cursor++;
         if(cursor == 5){
             playersLocations();
+            radarBonus();
             cursor = 0;
         }
         if(time == timeset - 60){
@@ -266,6 +267,55 @@ public class Game extends BukkitRunnable {
                         l = h.getLocation();
                     }
                     s.setCompassTarget(l);
+                }
+            }
+        }
+    }
+
+    public void radarBonus(){
+        //RADAR BONUS
+        for (Player p : players){
+            if(p.getInventory().getItemInMainHand().getType().equals(Material.COMPASS) && p.getInventory().getItemInMainHand().getItemMeta().hasDisplayName()){
+                Location closest = null;
+                if(t1.players.contains(p)){
+                    for (Player pl : t2.players){
+                        if(p.getLocation().distance(pl.getLocation()) <= 25){
+                            if (closest != null){
+                                if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
+                                    closest = pl.getLocation();
+                                    closest.setYaw(0);
+                                    closest.setPitch(0);
+                                    p.setCompassTarget(closest);
+                                }
+                            }
+                            else {
+                                closest = pl.getLocation();
+                                closest.setYaw(0);
+                                closest.setPitch(0);
+                                p.setCompassTarget(closest);
+                            }
+                        }
+                    }
+                }
+                else{
+                    for (Player pl : t2.players){
+                        if(p.getLocation().distance(pl.getLocation()) <= 25){
+                            if (closest != null){
+                                if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
+                                    closest = pl.getLocation();
+                                    closest.setYaw(0);
+                                    closest.setPitch(0);
+                                    p.setCompassTarget(closest);
+                                }
+                            }
+                            else {
+                                closest = pl.getLocation();
+                                closest.setYaw(0);
+                                closest.setPitch(0);
+                                p.setCompassTarget(closest);
+                            }
+                        }
+                    }
                 }
             }
         }

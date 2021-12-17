@@ -14,6 +14,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -127,7 +128,7 @@ public class Listen implements Listener {
     @EventHandler
     public void onDisconnect(PlayerQuitEvent event){
         for(Game g : HideAndSeek.games){
-            if (!g.equals(null)) {
+            if (g != null) {
                 if (g.owner.equals(event.getPlayer())) {
                     g.announcement(ChatColor.RED + "[!] The game was cancelled because the owner left without starting it [!]");
                     HideAndSeek.cancelGame(g.nb + 1);
@@ -158,7 +159,7 @@ public class Listen implements Listener {
         if(HideAndSeek.playerInGame(event.getPlayer())){
             if (event.getPlayer().getLocation().getY() < 0 || event.getPlayer().getLocation().getBlock().getType() == Material.LAVA){
                 for (Game g : HideAndSeek.games){
-                    if (!g.equals(null)) {
+                    if (g != null) {
                         if (g.players.contains(event.getPlayer())) {
                             event.getPlayer().teleport(g.zone);
                         }
@@ -191,21 +192,23 @@ public class Listen implements Listener {
 
     public void bonus(Player p) {
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        double b = HideAndSeek.randDouble(0, 27);
+        double b = HideAndSeek.randDouble(0, 29);
         if (p.getInventory().contains(Material.GLASS_BOTTLE)) {
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
         if (0 <= b && b <= 7) {
             p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
             p.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
-        } else if (7 < b && b <= 19) {
+        }
+        else if (7 < b && b <= 19) {
             p.sendMessage(ChatColor.DARK_RED + "[CROSSBOW]");
             if (p.getInventory().contains(Material.CROSSBOW)) {
                 p.getInventory().remove(Material.CROSSBOW);
             }
             p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
             p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 5));
-        } else if (19 < b && b <= 25) {
+        }
+        else if (19 < b && b <= 25) {
             p.sendMessage(ChatColor.AQUA + "[SPEED POTION]");
             ItemStack potion = new ItemStack(Material.POTION, 1);
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
@@ -213,7 +216,8 @@ public class Listen implements Listener {
             meta.setDisplayName(ChatColor.AQUA + "SUPERSPEED");
             potion.setItemMeta(meta);
             p.getInventory().addItem(potion);
-        } else if (25 < b && b <= 27) {
+        }
+        else if (25 < b && b <= 27) {
             p.sendMessage(ChatColor.GOLD + "[I BELIEVE I CAN FLY]");
             p.setAllowFlight(true);
             p.setFlying(true);
@@ -224,6 +228,19 @@ public class Listen implements Listener {
                     p.setFlying(false);
                 }
             }, 100L);
+        }
+        else if (27 < b && b <= 29){
+            p.sendMessage(ChatColor.DARK_PURPLE + "[RADAR]");
+            ItemStack compass = new ItemStack(Material.COMPASS);
+            ItemMeta meta = compass.getItemMeta();
+            meta.setDisplayName(ChatColor.DARK_PURPLE + "RADAR");
+            p.getInventory().addItem(compass);
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(main, new Runnable() {
+                public void run() {
+                    p.getInventory().remove(compass);
+                }
+            }, 1000L);
         }
     }
 

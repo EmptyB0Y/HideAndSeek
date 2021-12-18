@@ -6,6 +6,7 @@ import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -81,7 +82,6 @@ public class Listen implements Listener {
                             }
                         }
                         else{
-                            pl.teleport(g.zone);
                             for(Player h : g.t1.players){
                                 h.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
                             }
@@ -94,12 +94,17 @@ public class Listen implements Listener {
 
     @EventHandler
     public void onArrowHitPlayer(ProjectileCollideEvent event){
-        if(event.getEntity() instanceof SpectralArrow && event.getCollidedWith() instanceof Player) {
+        if((event.getEntity() instanceof SpectralArrow || event.getEntity() instanceof Arrow) && event.getCollidedWith() instanceof Player) {
             if (HideAndSeek.playerInGame((Player)event.getCollidedWith())){
                 Player p = (Player)event.getCollidedWith();
                 if(event.getEntity().getShooter() instanceof Player){
                     if(gameHit(p,(Player)event.getEntity().getShooter())){
-                        p.addPotionEffect(PotionEffectType.GLOWING.createEffect(100,1));
+                        if(event.getEntity() instanceof SpectralArrow) {
+                            p.addPotionEffect(PotionEffectType.GLOWING.createEffect(100, 1));
+                        }
+                        else{
+                            p.addPotionEffect(PotionEffectType.SLOW.createEffect(100, 5));
+                        }
                     }
                 }
             }
@@ -223,7 +228,7 @@ public class Listen implements Listener {
 
     public void bonus(Player p) {
         p.sendMessage(ChatColor.GOLD + "[?!]|-----[BONUS]-----|[!?]");
-        double b = HideAndSeek.randDouble(0, 33);
+        double b = HideAndSeek.randDouble(0, 37);
         if (p.getInventory().contains(Material.GLASS_BOTTLE)) {
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
@@ -239,7 +244,11 @@ public class Listen implements Listener {
             if (p.getInventory().contains(Material.CROSSBOW)) {
                 p.getInventory().remove(Material.CROSSBOW);
             }
-            p.getInventory().addItem(new ItemStack(Material.CROSSBOW));
+            ItemStack crossbow = new ItemStack(Material.CROSSBOW);
+            ItemMeta meta = crossbow.getItemMeta();
+            meta.addEnchant(Enchantment.QUICK_CHARGE,5,true);
+            crossbow.setItemMeta(meta);
+            p.getInventory().addItem(crossbow);
             p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 5));
         }
         else if (19 < b && b <= 25) {
@@ -298,12 +307,25 @@ public class Listen implements Listener {
         else if (32 < b && b <= 33) {
             p.sendMessage(ChatColor.GOLD + "THERMO-SIGNAL");
             p.sendMessage(ChatColor.ITALIC + "[?]LEFT-CLICK : Reveal all the opposing team members's positions");
-            p.sendMessage(ChatColor.ITALIC + "[!]Teleport you to game spawn if you are a seeker");
             ItemStack netherstar = new ItemStack(Material.NETHER_STAR);
             ItemMeta meta = netherstar.getItemMeta();
             meta.setDisplayName(ChatColor.GOLD + "THERMO-SIGNAL");
             netherstar.setItemMeta(meta);
             p.getInventory().addItem(netherstar);
+        }
+        else if(33 < b && b <=37){
+            p.sendMessage(ChatColor.DARK_GRAY + "[SLOWNESS ARROWS]");
+            p.sendMessage(ChatColor.ITALIC + "[?]SHOOT : The person you shot will be slowed for a small amount of time");
+            p.sendMessage(ChatColor.ITALIC + "[!]Works only on opposing team members");
+            if (p.getInventory().contains(Material.CROSSBOW)) {
+                p.getInventory().remove(Material.CROSSBOW);
+            }
+            ItemStack crossbow = new ItemStack(Material.CROSSBOW);
+            ItemMeta meta = crossbow.getItemMeta();
+            meta.addEnchant(Enchantment.QUICK_CHARGE,5,true);
+            crossbow.setItemMeta(meta);
+            p.getInventory().addItem(crossbow);
+            p.getInventory().addItem(new ItemStack(Material.ARROW, 3));
         }
     }
 

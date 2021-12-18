@@ -295,7 +295,7 @@ public final class HideAndSeek extends JavaPlugin {
                         for (Game g : games) {
                             if (g != null) {
                                 if (g.players.contains((Player) sender)) {
-                                    sender.sendMessage(ChatColor.DARK_PURPLE + "PLAYERS IN GAME N°"+g.nb+1+" : ");
+                                    sender.sendMessage(ChatColor.DARK_PURPLE + "PLAYERS IN GAME N°"+(g.nb+1)+" : ");
                                     for(Player p : g.t1.players){
                                         sender.sendMessage((ChatColor.DARK_GREEN + p.getName()));
                                     }

@@ -72,6 +72,7 @@ public class Listen implements Listener {
             }
             //THERMO-SIGNAL BONUS
             else if(pl.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR){
+                pl.getInventory().remove(Material.NETHER_STAR);
                 for(Game g : HideAndSeek.games){
                     if(g != null){
                         if(g.t1.players.contains(pl)){
@@ -169,6 +170,7 @@ public class Listen implements Listener {
     public void onPlayerSit(VehicleEnterEvent event){
         if(event.getEntered() instanceof Player && event.getVehicle() instanceof Arrow){
             Player pl = (Player) event.getEntered();
+            System.out.println(pl.getName() + " tried to sit");
             if(HideAndSeek.playerInGame(pl)){
                 event.setCancelled(true);
                 pl.sendActionBar(ChatColor.RED + "[!]You can't sit during a game");
@@ -266,11 +268,14 @@ public class Listen implements Listener {
         else if (27 < b && b <= 29){
             p.sendMessage(ChatColor.DARK_PURPLE + "[RADAR]");
             p.sendMessage(ChatColor.ITALIC + "[?]HOLD : Reveal the nearest opposing team member's position");
-            p.sendMessage(ChatColor.ITALIC + "[!]25 blocks ahead or less");
+            p.sendMessage(ChatColor.ITALIC + "[!]55 blocks ahead or less");
             ItemStack compass = new ItemStack(Material.COMPASS);
             ItemMeta meta = compass.getItemMeta();
             meta.setDisplayName(ChatColor.DARK_PURPLE + "RADAR");
             compass.setItemMeta(meta);
+            if(p.getInventory().contains(compass)){
+                p.getInventory().remove(compass);
+            }
             p.getInventory().addItem(compass);
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             scheduler.scheduleSyncDelayedTask(main, new Runnable() {
@@ -286,6 +291,7 @@ public class Listen implements Listener {
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
             meta.addCustomEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 250, 1), true);
             meta.setDisplayName(ChatColor.GRAY + "STEALTH");
+            meta.setColor(Color.AQUA);
             potion.setItemMeta(meta);
             p.getInventory().addItem(potion);
         }

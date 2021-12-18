@@ -28,6 +28,14 @@ commands:
     description: Cancel currently owned game
     usage: /hscancelgame <n°>
     permission: hs.cancelgame
+  hsspawn:
+    description: Teleports you to the spawn of the game you're in
+    usage: /hsspawn
+    permission: hs.spawn
+  hslistpl:
+    description: List all the players of the game you're in
+    usage: /hslistpl
+    permission: hs.listpl
   random:
     description: Generate random chest field
   saveinv:

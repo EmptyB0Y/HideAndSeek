@@ -274,6 +274,43 @@ public final class HideAndSeek extends JavaPlugin {
                     sender.sendMessage("Successfully cancelled game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
                     cancelGame(games[Integer.parseInt(args[0]) - 1].nb + 1);
                     break;
+                case "hsspawn":
+                    if(playerInGame((Player) sender)) {
+                        for (Game g : games) {
+                            if (g != null) {
+                                if (g.players.contains((Player) sender)) {
+                                    ((Player) sender).teleport(g.zone);
+                                    sender.sendMessage(ChatColor.DARK_PURPLE + "Teleporting you to this game spawn...");
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        sender.sendMessage(ChatColor.RED + "You are not in any game...");
+                    }
+                    break;
+                case "hslistpl":
+                    if(playerInGame((Player) sender)) {
+                        for (Game g : games) {
+                            if (g != null) {
+                                if (g.players.contains((Player) sender)) {
+                                    sender.sendMessage(ChatColor.DARK_PURPLE + "PLAYERS IN GAME N°"+g.nb+1+" : ");
+                                    for(Player p : g.t1.players){
+                                        sender.sendMessage((ChatColor.DARK_GREEN + p.getName()));
+                                    }
+                                    for(Player p : g.t2.players){
+                                        sender.sendMessage((ChatColor.RED + p.getName()));
+                                    }
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        sender.sendMessage(ChatColor.RED + "You are not in any game...");
+                    }
+                    break;
                 case "random":
                     if (args.length != 2) {
                         return false;

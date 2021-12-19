@@ -77,12 +77,16 @@ public class Listen implements Listener {
                 for(Game g : HideAndSeek.games){
                     if(g != null){
                         if(g.t1.players.contains(pl)){
+                            g.t1.chat(ChatColor.GREEN + pl.getName() + " has exposed the seekers's positions via thermo-signal");
                             for(Player s : g.t2.players){
+                                s.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 s.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
                             }
                         }
                         else{
+                            g.t2.chat(ChatColor.GREEN + pl.getName() + " has exposed the hiders's positions via thermo-signal");
                             for(Player h : g.t1.players){
+                                h.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 h.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
                             }
                         }

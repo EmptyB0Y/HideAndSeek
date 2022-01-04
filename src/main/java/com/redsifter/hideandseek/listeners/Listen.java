@@ -1,9 +1,10 @@
 package com.redsifter.hideandseek.listeners;
 
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
+import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import com.redsifter.hideandseek.HideAndSeek;
-import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
+import net.minecraft.server.v1_16_R3.EntityPose;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -11,6 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPoseChangeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
@@ -21,9 +23,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Listen implements Listener {
@@ -87,6 +86,7 @@ public class Listen implements Listener {
                             g.t2.chat(ChatColor.GREEN + pl.getName() + " has exposed the hiders's positions via thermo-signal");
                             for(Player h : g.t1.players){
                                 h.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
+                                h.sendMessage(ChatColor.RED + "[!] POSITON EXPOSED [!]");
                                 h.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
                             }
                         }
@@ -175,17 +175,6 @@ public class Listen implements Listener {
     public void onConnect(PlayerJoinEvent event){
         HideAndSeek.loadinv(event.getPlayer());
     }*/
-    @EventHandler
-    public void onPlayerSit(VehicleEnterEvent event){
-        if(event.getEntered() instanceof Player && event.getVehicle() instanceof Arrow){
-            Player pl = (Player) event.getEntered();
-            System.out.println(pl.getName() + " tried to sit");
-            if(HideAndSeek.playerInGame(pl)){
-                event.setCancelled(true);
-                pl.sendActionBar(ChatColor.RED + "[!]You can't sit during a game");
-            }
-        }
-    }
 
     @EventHandler
     public void onPlayerStarve(FoodLevelChangeEvent event){

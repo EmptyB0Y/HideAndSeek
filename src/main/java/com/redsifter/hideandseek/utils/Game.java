@@ -51,12 +51,18 @@ public class Game extends BukkitRunnable {
         pushBack(t1);
         pushBack(t2);
         cursor++;
-        if(cursor == 5){
+        if(cursor >= 2){
+            noSit();
+        }
+        else if(cursor == 5){
             playersLocations();
             radarBonus();
             cursor = 0;
         }
         if(time == timeset - 60){
+            for (Player p : t2.players) {
+                p.setWalkSpeed((float) 0.2);
+            }
             announcement(ChatColor.DARK_RED + "[!]THE SEEKERS ARE UNLEASHED[!]");
             announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]");
         }
@@ -109,7 +115,7 @@ public class Game extends BukkitRunnable {
                 p.setInvulnerable(true);
                 p.setFoodLevel(20);
                 p.setGameMode(GameMode.ADVENTURE);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20*60, 200));
+                p.setWalkSpeed(0);
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*60, 200));
                 setScoreBoard(p);
                 p.sendMessage(ChatColor.DARK_GRAY + "[!]You have to wait 60 seconds before you can chase hiders !\n");
@@ -272,6 +278,14 @@ public class Game extends BukkitRunnable {
         }
     }
 
+    public void noSit(){
+        for (Player p : players){
+            if(p.isInsideVehicle()){
+                p.leaveVehicle();
+                p.sendActionBar(ChatColor.RED + "[!]You can't sit within a game");
+            }
+        }
+    }
     public void radarBonus(){
         //RADAR BONUS
         for (Player p : players){
@@ -279,7 +293,7 @@ public class Game extends BukkitRunnable {
                 Location closest = null;
                 if(t1.players.contains(p)){
                     for (Player pl : t2.players){
-                        if(p.getLocation().distance(pl.getLocation()) <= 55){
+                        if(p.getLocation().distance(pl.getLocation()) <= SIZE/2){
                             if (closest != null){
                                 if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
                                     closest = pl.getLocation();
@@ -299,8 +313,8 @@ public class Game extends BukkitRunnable {
                     }
                 }
                 else{
-                    for (Player pl : t2.players){
-                        if(p.getLocation().distance(pl.getLocation()) <= 55){
+                    for (Player pl : t1.players){
+                        if(p.getLocation().distance(pl.getLocation()) <= SIZE/2){
                             if (closest != null){
                                 if (p.getLocation().distance(pl.getLocation()) < p.getLocation().distance(closest)){
                                     closest = pl.getLocation();

@@ -12,6 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
@@ -279,8 +280,20 @@ public final class HideAndSeek extends JavaPlugin {
                         for (Game g : games) {
                             if (g != null) {
                                 if (g.players.contains((Player) sender)) {
-                                    ((Player) sender).teleport(g.zone);
-                                    sender.sendMessage(ChatColor.DARK_PURPLE + "Teleporting you to this game spawn...");
+                                    sender.sendMessage(ChatColor.DARK_PURPLE + "Teleporting you to this game spawn in 5 seconds");
+                                    BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+                                    scheduler.scheduleSyncDelayedTask(this, new Runnable() {
+                                        public void run() {
+                                            ((Player) sender).teleport(g.zone);
+                                            if(g.t1.players.contains((Player) sender)){
+                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.DARK_GREEN + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]");
+
+                                            }else {
+                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.RED + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]");
+                                            }
+                                            sender.sendMessage(ChatColor.DARK_PURPLE + "Teleporting you to this game spawn...");
+                                        }
+                                    }, 100L);
                                     return true;
                                 }
                             }

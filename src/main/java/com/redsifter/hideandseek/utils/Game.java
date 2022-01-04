@@ -59,10 +59,14 @@ public class Game extends BukkitRunnable {
             radarBonus();
             cursor = 0;
         }
-        if(time == timeset - 60){
-            for (Player p : t2.players) {
-                p.setWalkSpeed((float) 0.2);
+        if(time > timeset - 60){
+            for(Player p : t2.players) {
+                if (p.getLocation().distance(zone) > 2) {
+                    p.teleport(zone);
+                }
             }
+        }
+        if(time == timeset - 60){
             announcement(ChatColor.DARK_RED + "[!]THE SEEKERS ARE UNLEASHED[!]");
             announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]");
         }
@@ -104,6 +108,7 @@ public class Game extends BukkitRunnable {
                 p.teleport(zone);
                 p.setInvulnerable(true);
                 p.setFoodLevel(20);
+                p.setHealth(20);
                 p.setGameMode(GameMode.ADVENTURE);
                 setScoreBoard(p);
                 p.sendMessage(ChatColor.DARK_GREEN + "[!]You have 60 seconds to hide before the seekers get unleashed !\n");
@@ -114,8 +119,9 @@ public class Game extends BukkitRunnable {
                 p.teleport(zone);
                 p.setInvulnerable(true);
                 p.setFoodLevel(20);
+                p.setHealth(20);
                 p.setGameMode(GameMode.ADVENTURE);
-                p.setWalkSpeed(0);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20*60, 200));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*60, 200));
                 setScoreBoard(p);
                 p.sendMessage(ChatColor.DARK_GRAY + "[!]You have to wait 60 seconds before you can chase hiders !\n");

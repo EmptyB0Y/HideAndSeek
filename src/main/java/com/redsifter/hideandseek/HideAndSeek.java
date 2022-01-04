@@ -548,7 +548,6 @@ public final class HideAndSeek extends JavaPlugin {
             }
             for(Player p : games[nb-1].t2.players){
                 p.getInventory().clear();
-                p.setWalkSpeed((float) 0.2);
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }

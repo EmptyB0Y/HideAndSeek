@@ -1,6 +1,7 @@
 package com.redsifter.hideandseek.listeners;
 
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
 import net.minecraft.server.v1_16_R3.EntityArrow;
@@ -115,7 +116,7 @@ public class Listen implements Listener {
             }
         }
     }
-
+    
     @EventHandler
     public void onPlayerManipulateArmorStand(PlayerArmorStandManipulateEvent event){
         if(HideAndSeek.playerInGame(event.getPlayer()) || event.getRightClicked().getName().equals(ChatColor.GOLD + "[?]")){

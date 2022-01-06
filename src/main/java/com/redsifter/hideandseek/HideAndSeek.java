@@ -457,7 +457,12 @@ public final class HideAndSeek extends JavaPlugin {
                 inv.add(fm.getConfig().getItemStack(p.getUniqueId().toString() + ".inventory." + i));
             }
             fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
-
+            try {
+                fm.saveConfig();
+            } catch (
+                    IOException e) {
+                e.printStackTrace();
+            }
             for (ItemStack it : inv) {
                 if (it != null) {
                     p.getInventory().addItem(it);

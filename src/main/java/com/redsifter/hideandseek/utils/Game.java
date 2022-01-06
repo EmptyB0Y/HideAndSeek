@@ -1,16 +1,19 @@
 package com.redsifter.hideandseek.utils;
 
+import com.mysql.fabric.xmlrpc.base.Array;
 import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Game extends BukkitRunnable {
@@ -27,7 +30,7 @@ public class Game extends BukkitRunnable {
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
     public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
-    public HashMap<Player,Inventory> savedInventories = new HashMap<Player,Inventory>();
+    public HashMap<Player, Inventory> savedInventories = new HashMap<Player,Inventory>();
     public ArrayList<Player> players = new ArrayList<>();
     public int SIZE;
     //SCOREBOARD
@@ -54,7 +57,7 @@ public class Game extends BukkitRunnable {
         if(cursor >= 2){
             noSit();
         }
-        else if(cursor == 5){
+        if(cursor == 5){
             playersLocations();
             radarBonus();
             cursor = 0;
@@ -78,21 +81,37 @@ public class Game extends BukkitRunnable {
 
         }
         if(!t1.players.isEmpty() && t2.players.isEmpty()){
-            hidersVictory();
+            try {
+                hidersVictory();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         else if(t1.players.isEmpty() && !t2.players.isEmpty()){
-            seekersVictory();
+            try {
+                seekersVictory();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         else if(t1.players.isEmpty() && t2.players.isEmpty() && time > 0){
-            main.cancelGame(nb);
+            try {
+                main.cancelGame(nb);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         if(time == 0 && !t1.players.isEmpty()){
-            hidersVictory();
+            try {
+                hidersVictory();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         time--;
     }
 
-    public boolean start(int timer,int limit){
+    public boolean start(int timer,int limit) throws FileNotFoundException {
         if((t1.players.size() - t2.players.size() <= 3 || t1.players.size() - t2.players.size() >= -3) && (!t1.players.isEmpty() && !t2.players.isEmpty())) {
             this.time = timer;
             this.timeset = timer;
@@ -102,7 +121,8 @@ public class Game extends BukkitRunnable {
             board.registerNewTeam(String.valueOf(nb));
             board.getTeam(String.valueOf(nb)).setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             for(Player p : t1.players){
-                savedInventories.put(p,p.getInventory());
+                //savedInventories.put(p,p.getInventory());
+                HideAndSeek.saveinv(p);
                 p.getInventory().clear();
                 board.getTeam(String.valueOf(nb)).addEntry(p.getName());
                 p.teleport(zone);
@@ -114,7 +134,8 @@ public class Game extends BukkitRunnable {
                 p.sendMessage(ChatColor.DARK_GREEN + "[!]You have 60 seconds to hide before the seekers get unleashed !\n");
             }
             for(Player p : t2.players){
-                savedInventories.put(p,p.getInventory());
+                //savedInventories.put(p,p.getInventory());
+                HideAndSeek.saveinv(p);
                 p.getInventory().clear();
                 p.teleport(zone);
                 p.setInvulnerable(true);
@@ -216,7 +237,7 @@ public class Game extends BukkitRunnable {
         t2.chat(msg);
     }
 
-    public void hidersVictory(){
+    public void hidersVictory() throws FileNotFoundException {
         announcement(ChatColor.GOLD + "The hiders won ! Congratulations :\n");
         for(Player p : t1.players){
             announcement(ChatColor.DARK_GREEN + p.getName() + "\n");
@@ -224,7 +245,7 @@ public class Game extends BukkitRunnable {
         main.cancelGame(nb+1);
     }
 
-    public void seekersVictory(){
+    public void seekersVictory() throws FileNotFoundException {
         announcement(ChatColor.GOLD + "The seekers won ! Congratulations :\n");
         for(Player p : t2.players){
             announcement(ChatColor.RED + p.getName() + "\n");
@@ -292,6 +313,7 @@ public class Game extends BukkitRunnable {
             }
         }
     }
+
     public void radarBonus(){
         //RADAR BONUS
         for (Player p : players){

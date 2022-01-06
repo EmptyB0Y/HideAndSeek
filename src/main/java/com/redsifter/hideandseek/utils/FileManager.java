@@ -1,33 +1,31 @@
 package com.redsifter.hideandseek.utils;
 
-import com.redsifter.hideandseek.HideAndSeek;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;
 
 public class FileManager {
-    private HideAndSeek main;
     private FileConfiguration dataConfig = null;
     private File configFile;
-    public FileManager(HideAndSeek hs){
-    main = hs;
+
+    public FileManager(){
     saveDefaultConfig();
     }
 
-    public void reloadConfig(){
+    public void reloadConfig() throws FileNotFoundException {
         if (this.configFile == null) {
-            this.configFile = new File(this.main.getDataFolder(), "inventories.yml");
+            this.configFile = new File ("plugins/HideAndSeek/", "inventories.yml");
         }
         this.dataConfig= YamlConfiguration.loadConfiguration(this.configFile);
-        InputStream defaultStream = main.getResource("inventories.yml");
+        FileInputStream defaultStream = new FileInputStream("plugins/HideAndSeek/inventories.yml");
         if(defaultStream != null){
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultStream));
             this.dataConfig.setDefaults(defaultConfig);
         }
     }
 
-    public FileConfiguration getConfig(){
+    public FileConfiguration getConfig() throws FileNotFoundException {
         if(this.dataConfig == null){
             reloadConfig();
         }
@@ -42,11 +40,8 @@ public class FileManager {
     }
 
     public void saveDefaultConfig(){
-        if(this.configFile == null){
-            this.configFile = new File(this.main.getDataFolder(), "inventories.yml");
-        }
-        if(!this.configFile.exists()){
-            this.main.saveResource("inventories.yml",false);
+        if(this.configFile == null || !this.configFile.exists()){
+            this.configFile = new File("plugins/HideAndSeek/", "inventories.yml");
         }
     }
 

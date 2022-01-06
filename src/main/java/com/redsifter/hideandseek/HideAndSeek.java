@@ -17,6 +17,7 @@ import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -32,14 +33,18 @@ public final class HideAndSeek extends JavaPlugin {
     public void onDisable() {
         for (Game g : HideAndSeek.games){
             if(g != null) {
-                cancelGame(g.nb + 1);
+                try {
+                    cancelGame(g.nb + 1);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
     public static int MAXPLAYERS = 10;
     public static int MAXSIZE = 3;
     public static Game[] games = new Game[MAXSIZE];
-    public FileManager fm = new FileManager(this);
+    public static FileManager fm = new FileManager();
 
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command cmd, @Nonnull String label, @Nonnull String[] args) {
         if (sender instanceof Player) {
@@ -252,12 +257,16 @@ public final class HideAndSeek extends JavaPlugin {
                             sender.sendMessage("You are not the owner of this game...\n");
                             return false;
                         }
-                        if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]), Integer.parseInt(args[2]))) {
-                            sender.sendMessage("Couldn't start game, difference between the two teams is too high !\n");
-                            return false;
-                        } else {
-                            sender.sendMessage("Successfully started game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
-                            setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                        try {
+                            if (!games[Integer.parseInt(args[0]) - 1].start(Integer.parseInt(args[1]), Integer.parseInt(args[2]))) {
+                                sender.sendMessage("Couldn't start game, difference between the two teams is too high !\n");
+                                return false;
+                            } else {
+                                sender.sendMessage("Successfully started game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
+                                setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                            }
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
                         }
                     } else {
                         sender.sendMessage("There is no game available at the moment or you didn't specify the right team option (h | s).\n");
@@ -273,7 +282,11 @@ public final class HideAndSeek extends JavaPlugin {
                         return false;
                     }
                     sender.sendMessage("Successfully cancelled game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
-                    cancelGame(games[Integer.parseInt(args[0]) - 1].nb + 1);
+                    try {
+                        cancelGame(games[Integer.parseInt(args[0]) - 1].nb + 1);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 case "hsspawn":
                     if(playerInGame((Player) sender)) {
@@ -344,17 +357,33 @@ public final class HideAndSeek extends JavaPlugin {
                     }
                     break;
                 case "saveinv": {
-                    fm.reloadConfig();
+                    try {
+                        fm.reloadConfig();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         int count = 0;
-                        fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+                        try {
+                            fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
                         for (ItemStack it : p.getInventory()) {
                             if (it != null) {
                                 count++;
-                                fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+                                try {
+                                    fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
-                        fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+                        try {
+                            fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
                     }
                     try {
                         fm.saveConfig();
@@ -366,10 +395,23 @@ public final class HideAndSeek extends JavaPlugin {
                 }
                 case "loadinv": {
                     ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
-                    fm.reloadConfig();
-                    int nbr = fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".count");
+                    try {
+                        fm.reloadConfig();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    int nbr = 0;
+                    try {
+                        nbr = fm.getConfig().getInt(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".count");
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     for (int i = 1; i <= nbr; i++) {
-                        inv.add(fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".inventory." + i));
+                        try {
+                            inv.add(fm.getConfig().getItemStack(Bukkit.getPlayerExact(args[0]).getUniqueId().toString() + ".inventory." + i));
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     for (ItemStack it : inv) {
@@ -386,34 +428,35 @@ public final class HideAndSeek extends JavaPlugin {
         return true;
     }
 
-    /*public void saveinv(Player p) {
-        this.fm.reloadConfig();
+    public static void saveinv(Player p) throws FileNotFoundException {
+        fm.reloadConfig();
         int count = 0;
-        this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
+        fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
         for (ItemStack it : p.getInventory()) {
             if (it != null) {
                 count++;
-                this.fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
+                fm.getConfig().set(p.getUniqueId().toString() + ".inventory." + count, it);
             }
         }
-        this.fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
+        fm.getConfig().set(p.getUniqueId().toString() + ".count", count);
         try {
-            this.fm.saveConfig();
+            fm.saveConfig();
         } catch (
                 IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void loadinv(Player p) {
-        if (this.fm.getConfig().contains(p.getUniqueId().toString())) {
+    public static void loadinv(Player p) throws FileNotFoundException {
+        if (fm.getConfig().contains(p.getUniqueId().toString())) {
 
             ArrayList<ItemStack> inv = new ArrayList<ItemStack>();
-            this.fm.reloadConfig();
-            int nbr = this.fm.getConfig().getInt(p.getUniqueId().toString() + ".count");
+            fm.reloadConfig();
+            int nbr = fm.getConfig().getInt(p.getUniqueId().toString() + ".count");
             for (int i = 1; i <= nbr; i++) {
-                inv.add(this.fm.getConfig().getItemStack(p.getUniqueId().toString() + ".inventory." + i));
+                inv.add(fm.getConfig().getItemStack(p.getUniqueId().toString() + ".inventory." + i));
             }
+            fm.getConfig().set(p.getUniqueId().toString() + ".inventory", null);
 
             for (ItemStack it : inv) {
                 if (it != null) {
@@ -422,7 +465,7 @@ public final class HideAndSeek extends JavaPlugin {
                 }
             }
         }
-    }*/
+    }
 
     public boolean areaAvailableFor(Location l, int size, @Nullable Player p){
         for(Game g : games) {
@@ -525,14 +568,15 @@ public final class HideAndSeek extends JavaPlugin {
     return randLocs;
     }
 
-    public static void cancelGame(int nb){
+    public static void cancelGame(int nb) throws FileNotFoundException {
         if(games[nb-1] != null){
             if(games[nb-1].hasStarted) {
                 games[nb - 1].cancel();
             }
             for(Player p : games[nb-1].t1.players){
                 p.getInventory().clear();
-                if (games[nb - 1].savedInventories.get(p) != null) {
+                loadinv(p);
+                /*if (games[nb - 1].savedInventories.get(p) != null) {
 
                     if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
                         for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
@@ -541,7 +585,7 @@ public final class HideAndSeek extends JavaPlugin {
                             }
                         }
                     }
-                }
+                }*/
 
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
@@ -551,7 +595,8 @@ public final class HideAndSeek extends JavaPlugin {
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
-                if (games[nb - 1].savedInventories.size() > 0) {
+                loadinv(p);
+                /*if (games[nb - 1].savedInventories.size() > 0) {
                     if (!games[nb - 1].savedInventories.get(p).isEmpty()) {
                         for (ItemStack it : games[nb - 1].savedInventories.get(p).getStorageContents()) {
                             if (it != null) {
@@ -559,7 +604,7 @@ public final class HideAndSeek extends JavaPlugin {
                             }
                         }
                     }
-                }
+                }*/
 
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);

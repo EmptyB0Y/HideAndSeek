@@ -1,11 +1,8 @@
 package com.redsifter.hideandseek.listeners;
 
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
-import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
-import net.minecraft.server.v1_16_R3.EntityArrow;
-import net.minecraft.server.v1_16_R3.PlayerInteractManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -13,18 +10,17 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
-import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
+
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class Listen implements Listener {
@@ -154,9 +150,9 @@ public class Listen implements Listener {
 
     @EventHandler
     public void onPlayerDragItem(InventoryDragEvent event){
-        if(event.getInventory().getType() == InventoryType.PLAYER){
-            for(HumanEntity p : event.getViewers()){
-                if(HideAndSeek.playerInGame((Player)p)){
+        for(HumanEntity p : event.getViewers()){
+            if(p instanceof Player) {
+                if (HideAndSeek.playerInGame((Player) p)) {
                     event.setCancelled(true);
                 }
             }
@@ -164,7 +160,24 @@ public class Listen implements Listener {
     }
 
     @EventHandler
-    public void onDisconnect(PlayerQuitEvent event){
+    public void onPlayerClickInventory(InventoryClickEvent event){
+        if(event.getWhoClicked() instanceof Player) {
+            if (HideAndSeek.playerInGame((Player)event.getWhoClicked())) {
+                Player p = (Player) event.getWhoClicked();
+                if (event.getRawSlot() == 45) {
+                    event.setCancelled(true);
+                    if (p.getInventory().getItemInOffHand().equals(event.getCurrentItem())) {
+                        ItemStack it = event.getCurrentItem();
+                        p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+                        p.getInventory().addItem(it);
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDisconnect(PlayerQuitEvent event) throws FileNotFoundException {
         for(Game g : HideAndSeek.games){
             if (g != null) {
                 if (g.owner.equals(event.getPlayer())) {
@@ -180,10 +193,10 @@ public class Listen implements Listener {
         }
     }
 
-    /*@EventHandler
-    public void onConnect(PlayerJoinEvent event){
+    @EventHandler
+    public void onConnect(PlayerJoinEvent event) throws FileNotFoundException {
         HideAndSeek.loadinv(event.getPlayer());
-    }*/
+    }
 
     @EventHandler
     public void onPlayerStarve(FoodLevelChangeEvent event){

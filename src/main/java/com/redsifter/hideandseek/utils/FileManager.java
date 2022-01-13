@@ -9,7 +9,7 @@ public class FileManager {
     private FileConfiguration dataConfig = null;
     private File configFile;
 
-    public FileManager(){
+    public FileManager() throws IOException {
     saveDefaultConfig();
     }
 
@@ -39,9 +39,10 @@ public class FileManager {
         this.getConfig().save(this.configFile);
     }
 
-    public void saveDefaultConfig(){
+    public void saveDefaultConfig() throws IOException {
         if(this.configFile == null || !this.configFile.exists()){
             this.configFile = new File("plugins/HideAndSeek/", "inventories.yml");
+            this.configFile.createNewFile();
         }
     }
 

@@ -1,12 +1,10 @@
 package com.redsifter.hideandseek.utils;
-
-import com.mysql.fabric.xmlrpc.base.Array;
+import com.destroystokyo.paper.Title;
 import com.redsifter.hideandseek.HideAndSeek;
+
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -30,8 +28,9 @@ public class Game extends BukkitRunnable {
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
     public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
-    public HashMap<Player, Inventory> savedInventories = new HashMap<Player,Inventory>();
     public ArrayList<Player> players = new ArrayList<>();
+    public ArrayList<Player> specs = new ArrayList<>();
+    public Channel spectator = new Channel("spectators",ChatColor.GRAY);
     public int SIZE;
     //SCOREBOARD
     private ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -186,28 +185,27 @@ public class Game extends BukkitRunnable {
         return false;
     }
 
-    public boolean remPlayer(Player p) {
+    public boolean remPlayer(Player p,Boolean seeker) throws FileNotFoundException {
         if (players.contains(p)) {
             players.remove(p);
-
             if (t1.players.contains(p)) {
                 t1.remPlayer(p.getName());
                 if (board.getTeam("" + nb) != null) {
                     board.getTeam("" + nb).removeEntry(p.getName());
                 }
                 announcement(ChatColor.DARK_GREEN + "[-H]" + p.getName());
-                p.setGameMode(GameMode.SURVIVAL);
+                if(seeker) {
+                    specs.add(p);
+                    spectator.addPlayer(p);
+                    p.sendTitle("[!] YOU ARE NOW A SPECTATOR [!]","",1,60,1);
+                    p.sendMessage(ChatColor.GRAY + "SPECTATOR MODE : Type /hsleave to leave the game");
+                    p.setGameMode(GameMode.SPECTATOR);
+                }else {
+                    p.setGameMode(GameMode.SURVIVAL);
+                }
                 p.setInvulnerable(false);
                 p.getInventory().clear();
-                if (this.savedInventories.get(p) != null) {
-                    if (!this.savedInventories.get(p).isEmpty()) {
-                        for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                            if (it != null) {
-                                p.getInventory().addItem(it);
-                            }
-                        }
-                    }
-                }
+                HideAndSeek.loadinv(p);
                 return true;
 
             } else if (t2.players.contains(p)) {
@@ -219,15 +217,15 @@ public class Game extends BukkitRunnable {
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
-                if (this.savedInventories.get(p) != null) {
-                    if (!this.savedInventories.get(p).isEmpty()) {
-                        for (ItemStack it : this.savedInventories.get(p).getStorageContents()) {
-                            p.getInventory().addItem(it);
-                        }
-                    }
-                }
+                HideAndSeek.loadinv(p);
                 return true;
             }
+        }
+        else if(specs.contains(p)){
+            specs.remove(p);
+            spectator.remPlayer(p);
+            p.teleport(zone);
+            p.setGameMode(GameMode.SURVIVAL);
         }
         return false;
     }

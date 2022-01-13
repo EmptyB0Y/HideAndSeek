@@ -24,9 +24,20 @@ import java.util.Random;
 
 public final class HideAndSeek extends JavaPlugin {
 
+    public static int MAXPLAYERS = 10;
+    public static int MAXSIZE = 3;
+    public static Game[] games = new Game[MAXSIZE];
+    public static FileManager fm;
+
     @Override
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(new Listen(this), this);
+        getDataFolder().mkdir();
+        try {
+            fm =  new FileManager();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -41,10 +52,6 @@ public final class HideAndSeek extends JavaPlugin {
             }
         }
     }
-    public static int MAXPLAYERS = 10;
-    public static int MAXSIZE = 3;
-    public static Game[] games = new Game[MAXSIZE];
-    public static FileManager fm = new FileManager();
 
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command cmd, @Nonnull String label, @Nonnull String[] args) {
         if (sender instanceof Player) {
@@ -216,21 +223,21 @@ public final class HideAndSeek extends JavaPlugin {
                 case "hsleave":
                     if (countGames() >= 1) {
                         for (Game g : games) {
-                            if (g.t1.players.contains((Player) sender)) {
-                                if (g.remPlayer((Player) sender)) {
-                                    sender.sendMessage("Successfuly left game n°" + (g.nb + 1) + " !\n");
-                                    return true;
+                            if(g != null) {
+                                if (g.players.contains((Player) sender) || g.specs.contains((Player) sender)) {
+                                    try {
+                                        if (g.remPlayer((Player) sender, false)) {
+                                            sender.sendMessage("Successfuly left game n°" + (g.nb + 1) + " !\n");
+                                            return true;
+                                        }
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    sender.sendMessage("You aren't in any games...\n");
+                                    return false;
                                 }
-                            } else if (g.t2.players.contains((Player) sender)) {
-                                if (g.remPlayer((Player) sender)) {
-                                    sender.sendMessage("Successfuly left game n°" + (g.nb + 1) + " !\n");
-                                    return true;
-                                }
-                            } else {
-                                sender.sendMessage("You aren't in any games...\n");
-                                return false;
                             }
-
                         }
                     } else {
                         sender.sendMessage("There aren't any games...\n");
@@ -244,12 +251,12 @@ public final class HideAndSeek extends JavaPlugin {
                     if (args.length < 3) {
                         sender.sendMessage("Missing arguments...\n");
                         return false;
-                    } else if (Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1200) {
-                        sender.sendMessage("The time must be contained between 200 and 1200\n");
+                    } else if (Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1060) {
+                        sender.sendMessage("The time must be contained between 200 and 1060\n");
                         return false;
                     }
-                    if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 800) {
-                        sender.sendMessage("The limit must be contained between 120 and 800\n");
+                    if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 480) {
+                        sender.sendMessage("The limit must be contained between 120 and 560\n");
                         return false;
                     }
                     if (countGames() >= 1) {
@@ -309,6 +316,9 @@ public final class HideAndSeek extends JavaPlugin {
                                     }, 100L);
                                     return true;
                                 }
+                                else if(g.specs.contains((Player) sender)){
+                                    ((Player) sender).teleport(g.zone);
+                                }
                             }
                         }
                     }
@@ -320,7 +330,7 @@ public final class HideAndSeek extends JavaPlugin {
                     if(playerInGame((Player) sender)) {
                         for (Game g : games) {
                             if (g != null) {
-                                if (g.players.contains((Player) sender)) {
+                                if (g.players.contains((Player) sender) || g.specs.contains((Player) sender)){
                                     sender.sendMessage(ChatColor.DARK_PURPLE + "PLAYERS IN GAME N°"+(g.nb+1)+" : ");
                                     for(Player p : g.t1.players){
                                         sender.sendMessage((ChatColor.DARK_GREEN + p.getName()));
@@ -613,6 +623,11 @@ public final class HideAndSeek extends JavaPlugin {
 
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
+            }
+
+            for(Player p : games[nb-1].specs){
+                p.teleport(games[nb-1].zone);
+                p.setGameMode(GameMode.SURVIVAL);
             }
             setMysteryChests(games[nb-1],false);
             for(Team t : games[nb-1].board.getTeams()) {

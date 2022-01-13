@@ -1,5 +1,6 @@
 package com.redsifter.hideandseek.listeners;
 
+import com.destroystokyo.paper.Title;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
@@ -38,16 +39,21 @@ public class Listen implements Listener {
                 if (g.t1.players.contains(pl)) {
                     event.setCancelled(true);
                     g.t1.chat(event.getMessage());
-                } else if (g.t2.players.contains(pl)) {
+                }
+                else if (g.t2.players.contains(pl)) {
                     event.setCancelled(true);
                     g.t2.chat(event.getMessage());
+                }
+                else if(g.specs.contains(pl)){
+                    event.setCancelled(true);
+                    g.spectator.broadcast(event.getMessage());
                 }
             }
         }
     }
 
     @EventHandler
-    public void onHit(PlayerInteractEvent event){
+    public void onHit(PlayerInteractEvent event) throws FileNotFoundException {
         if(HideAndSeek.playerInGame(event.getPlayer()) && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)){
             Player pl = event.getPlayer();
             //TEST INTERRACTION
@@ -57,7 +63,7 @@ public class Listen implements Listener {
                     if (seekerFind(pl, (Player)target)) {
                         pl.sendMessage(ChatColor.DARK_PURPLE + "You found " + target.getName() + " !\n");
                         target.sendMessage(ChatColor.RED + "You were found by " + pl.getName() + " !\n");
-                        removeFromGame((Player)target);
+                        removeFromGame((Player)target,true);
                     }
                 } else if (target instanceof ArmorStand) {
                     if (target.getName().equals(ChatColor.GOLD + "[?]") && chestsAreAvailableFor(pl)) {
@@ -188,7 +194,7 @@ public class Listen implements Listener {
             }
         }
         if(HideAndSeek.playerInGame(event.getPlayer())){
-            removeFromGame(event.getPlayer());
+            removeFromGame(event.getPlayer(),false);
             //HideAndSeek.saveinv(event.getPlayer());
         }
     }
@@ -222,10 +228,13 @@ public class Listen implements Listener {
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event){
-        if(HideAndSeek.playerInGame(event.getPlayer())){
-            for (Game g : HideAndSeek.games){
-                if (g.players.contains(event.getPlayer())){
-                    event.getPlayer().teleport(g.zone);
+        Player p = event.getPlayer();
+        if (HideAndSeek.playerInGame(p)) {
+            for (Game g : HideAndSeek.games) {
+                if (g != null) {
+                    if (g.players.contains(p)) {
+                        event.setRespawnLocation(g.zone);
+                    }
                 }
             }
         }
@@ -412,10 +421,10 @@ public class Listen implements Listener {
         return false;
     }
 
-    public void removeFromGame(Player pl) {
+    public void removeFromGame(Player pl,Boolean seeker) throws FileNotFoundException {
         for (Game g : HideAndSeek.games) {
             if (g != null) {
-                g.remPlayer(pl);
+                g.remPlayer(pl,seeker);
             }
         }
     }

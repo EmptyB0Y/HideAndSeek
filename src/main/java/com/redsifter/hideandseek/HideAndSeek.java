@@ -57,7 +57,7 @@ public final class HideAndSeek extends JavaPlugin {
         if (sender instanceof Player) {
             switch (label) {
                 case "hssetgame":
-                    if (args.length > 2) {
+                    if (args.length > 1) {
                         sender.sendMessage("Too much arguments...\n");
                         return false;
                     }
@@ -68,76 +68,23 @@ public final class HideAndSeek extends JavaPlugin {
                     //ADD TEAMS
                     CustomTeam t1 = new CustomTeam(1, "hiders");
                     CustomTeam t2 = new CustomTeam(2, "seekers");
-                    if (args.length > 0) {
-                        ArrayList<Player> lst = new ArrayList<>();
-                        args[0] = args[0] + ',';
-                        int length = args[0].length();
-                        char[] destArray = new char[length];
-                        String str = "";
-                        int i = 0;
-                        //ADD FIRST TEAM
-                        if (args.length == 1) {
-                            args[0].getChars(0, length, destArray, 0);
-                            str = "";
-                            for (char t : destArray) {
-                                if (t == ',') {
-                                    System.out.println(str.trim());
-                                    if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
-                                        lst.add(Bukkit.getPlayerExact(str.trim()));
-                                        Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
-                                        str = "";
-                                    } else {
-                                        sender.sendMessage(str + " is either already in a game, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
-                                        str = "";
-                                    }
-                                }
-                                else {
-                                    str = str + t;
-                                }
-                                i++;
-                            }
-                            t1.setPlayers(lst);
-                            lst.clear();
-                            i = 0;
-                        }
-                        //ADD SECOND TEAM
-                        if (args.length == 2) {
-                            args[1] = args[1] + ',';
-                            length = args[1].length();
-                            destArray = new char[length];
-                            args[1].getChars(0, length, destArray, 0);
-                            str = "";
-                            for (char t : destArray) {
-                                if (t == ',') {
-                                    System.out.println(str);
-                                    if (!playerInGame(Bukkit.getPlayerExact(str.trim())) && !t1.players.contains(Bukkit.getPlayerExact(str.trim())) && Bukkit.getOnlinePlayers().contains(Bukkit.getPlayerExact(str.trim())) && i < MAXPLAYERS) {
-                                        lst.add(Bukkit.getPlayerExact(str.trim()));
-                                        Bukkit.getPlayerExact(str.trim()).sendMessage(ChatColor.GREEN + "You were added to a new game of HideAndSeek ! (type /hsleave to leave)\n");
-                                        str = "";
-                                    } else {
-                                        sender.sendMessage(str + " is either already in a game, in the other team, offline or can't join because the team is full (" + MAXPLAYERS + ") !\n");
-                                        str = "";
-                                    }
-                                } else {
-                                    str = str + t;
-                                }
-                                i++;
-                            }
-                            t2.setPlayers(lst);
-                        }
-                    }
-                    if (!areaAvailableFor(((Player) sender).getLocation(), (t2.players.size() + t1.players.size()) * 30, (Player) sender)) {
+
+                    /*if (!areaAvailableFor(((Player) sender).getLocation(), (t2.players.size() + t1.players.size()) * 30, (Player) sender)) {
                         return false;
-                    }
+                    }*/
                     //INITALIZE GAME
                     int game = 0;
                     if (countGames() > 0) {
                         game = countGames() + 1;
                     }
                     games[game] = new Game(t1, t2, game, (Player) sender, this);
-                    System.out.println(games[game].players);
-                    System.out.println(games[game].t1.players);
-                    System.out.println(games[game].t2.players);
+                    if(args.length > 0) {
+                        if(args[0].equals("predator")){
+                            games[game].mode = "predator";
+                            sender.sendMessage("You initalized game n° " + countGames() + " in predator mode !\n");
+                            return true;
+                        }
+                    }
 
                     sender.sendMessage("You initalized game n° " + countGames() + " !\n");
 
@@ -270,7 +217,9 @@ public final class HideAndSeek extends JavaPlugin {
                                 return false;
                             } else {
                                 sender.sendMessage("Successfully started game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
-                                setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                                if(games[Integer.parseInt(args[0]) - 1].mode == "normal") {
+                                    setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
+                                }
                             }
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
@@ -306,10 +255,10 @@ public final class HideAndSeek extends JavaPlugin {
                                         public void run() {
                                             ((Player) sender).teleport(g.zone);
                                             if(g.t1.players.contains((Player) sender)){
-                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.DARK_GREEN + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]");
+                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.DARK_GREEN + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]",false);
 
                                             }else {
-                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.RED + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]");
+                                                g.announcement(ChatColor.DARK_PURPLE + "[!] " + ChatColor.RED + sender.getName() + ChatColor.DARK_PURPLE + " TELEPORTED TO GAME SPAWN [!]",false);
                                             }
                                             sender.sendMessage(ChatColor.DARK_PURPLE + "Teleporting you to this game spawn...");
                                         }

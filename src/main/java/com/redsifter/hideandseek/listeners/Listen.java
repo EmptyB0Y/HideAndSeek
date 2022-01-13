@@ -187,7 +187,7 @@ public class Listen implements Listener {
         for(Game g : HideAndSeek.games){
             if (g != null) {
                 if (g.owner.equals(event.getPlayer())) {
-                    g.announcement(ChatColor.RED + "[!] The game was cancelled because the owner left without starting it [!]");
+                    g.announcement(ChatColor.RED + "[!] The game was cancelled because the owner left without starting it [!]",false);
                     HideAndSeek.cancelGame(g.nb + 1);
                     return;
                 }
@@ -195,7 +195,6 @@ public class Listen implements Listener {
         }
         if(HideAndSeek.playerInGame(event.getPlayer())){
             removeFromGame(event.getPlayer(),false);
-            //HideAndSeek.saveinv(event.getPlayer());
         }
     }
 
@@ -357,7 +356,7 @@ public class Listen implements Listener {
         for(Game g : HideAndSeek.games){
             if(g != null) {
                 if ((g.t2.players.contains(p1) && g.t1.players.contains(p2)) && g.hasStarted && g.time <= g.timeset - 60) {
-                    g.announcement(ChatColor.DARK_PURPLE + "[!]" + p2.getName() + " has been found by " + p1.getName());
+                    g.announcement(ChatColor.DARK_PURPLE + "[!]" + p2.getName() + " has been found by " + p1.getName(),false);
                     return true;
                 }
             }
@@ -370,10 +369,10 @@ public class Listen implements Listener {
             if(g != null) {
                 if(g.hasStarted && g.time <= g.timeset - 60) {
                     if (g.t2.players.contains(p1) && g.t1.players.contains(p2)) {
-                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.DARK_GREEN + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.RED + p1.getName());                        return true;
+                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.DARK_GREEN + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.RED + p1.getName(),false);                        return true;
                     }
                     else if(g.t2.players.contains(p2) && g.t1.players.contains(p1)){
-                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.RED + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.DARK_GREEN + p1.getName());
+                        g.announcement(ChatColor.DARK_AQUA + "[!]" + ChatColor.RED + p2.getName() + ChatColor.DARK_AQUA + " has spotted " + ChatColor.DARK_GREEN + p1.getName(),false);
                         return true;
                     }
                 }

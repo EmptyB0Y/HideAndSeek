@@ -1,12 +1,12 @@
 name: HideAndSeek
-version: 2.1
+version: 2.2
 author: redsifter
 main: com.redsifter.hideandseek.HideAndSeek
 api-version: 1.17
 commands:
   hssetgame:
     description: Set a new game
-    usage : /hssetgame [player1,player2,player3] [player1,player2...]
+    usage : /hssetgame [predator]
     permission: hs.setgame
   hsjoin:
     description: Join a game

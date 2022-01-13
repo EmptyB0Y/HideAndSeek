@@ -1,7 +1,8 @@
 package com.redsifter.hideandseek.utils;
-import com.destroystokyo.paper.Title;
 import com.redsifter.hideandseek.HideAndSeek;
 
+import net.minecraft.server.v1_16_R3.PacketPlayOutAbilities;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntityEffect;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -25,6 +26,7 @@ public class Game extends BukkitRunnable {
     public Player owner;
     public Location zone;
     public boolean full = false;
+    public String mode = "normal";
     private HashMap<Player,Location> limit = new HashMap<Player,Location>();
     public HashMap<ArmorStand,Boolean> chests = new HashMap<ArmorStand,Boolean>();
     public HashMap<Player,Integer> lastBonus = new HashMap<Player,Integer>();
@@ -69,14 +71,14 @@ public class Game extends BukkitRunnable {
             }
         }
         if(time == timeset - 60){
-            announcement(ChatColor.DARK_RED + "[!]THE SEEKERS ARE UNLEASHED[!]");
-            announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]");
+            announcement(ChatColor.DARK_RED + "[!]SEEKERS ARE UNLEASHED[!]",false);
+            announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]",false);
         }
         if(time == timeset/2){
-            announcement(ChatColor.GOLD + "[!]THE TIMER IS HALFWAY DONE[!]");
+            announcement(ChatColor.GOLD + "[!]THE TIMER IS HALFWAY DONE[!]",false);
         }
         if(time == (timeset*0.1)){
-            announcement(ChatColor.RED + "[!]THE TIMER IS ALMOST DONE[!]");
+            announcement(ChatColor.RED + "[!]THE TIMER IS ALMOST DONE[!]",false);
 
         }
         if(!t1.players.isEmpty() && t2.players.isEmpty()){
@@ -120,7 +122,6 @@ public class Game extends BukkitRunnable {
             board.registerNewTeam(String.valueOf(nb));
             board.getTeam(String.valueOf(nb)).setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
             for(Player p : t1.players){
-                //savedInventories.put(p,p.getInventory());
                 HideAndSeek.saveinv(p);
                 p.getInventory().clear();
                 board.getTeam(String.valueOf(nb)).addEntry(p.getName());
@@ -131,9 +132,14 @@ public class Game extends BukkitRunnable {
                 p.setGameMode(GameMode.ADVENTURE);
                 setScoreBoard(p);
                 p.sendMessage(ChatColor.DARK_GREEN + "[!]You have 60 seconds to hide before the seekers get unleashed !\n");
+                if(mode.equals("predator")){
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*time, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20*time, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20*time, 1));
+                    board.getTeam(String.valueOf(nb)).setColor(ChatColor.DARK_GREEN);
+                }
             }
             for(Player p : t2.players){
-                //savedInventories.put(p,p.getInventory());
                 HideAndSeek.saveinv(p);
                 p.getInventory().clear();
                 p.teleport(zone);
@@ -142,7 +148,12 @@ public class Game extends BukkitRunnable {
                 p.setHealth(20);
                 p.setGameMode(GameMode.ADVENTURE);
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20*60, 200));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*60, 200));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*60, 1));
+                if(mode.equals("predator")){
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20*time, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20*time, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20*time, 1));
+                }
                 setScoreBoard(p);
                 p.sendMessage(ChatColor.DARK_GRAY + "[!]You have to wait 60 seconds before you can chase hiders !\n");
 
@@ -159,7 +170,7 @@ public class Game extends BukkitRunnable {
         if(t.equals("h")){
             if(!t1.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t1.full) {
-                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName());
+                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName(), false);
                     t1.addPlayer(p);
                     players.add(p);
                     return true;
@@ -172,7 +183,7 @@ public class Game extends BukkitRunnable {
         else if(t.equals("s")){
             if(!t2.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t2.full) {
-                    announcement(ChatColor.RED + "[+S]"+p.getName());
+                    announcement(ChatColor.RED + "[+S]"+p.getName(),false);
                     t2.addPlayer(p);
                     players.add(p);
                     return true;
@@ -193,11 +204,11 @@ public class Game extends BukkitRunnable {
                 if (board.getTeam("" + nb) != null) {
                     board.getTeam("" + nb).removeEntry(p.getName());
                 }
-                announcement(ChatColor.DARK_GREEN + "[-H]" + p.getName());
+                announcement(ChatColor.DARK_GREEN + "[-H]" + p.getName(),false);
                 if(seeker) {
                     specs.add(p);
                     spectator.addPlayer(p);
-                    p.sendTitle("[!] YOU ARE NOW A SPECTATOR [!]","",1,60,1);
+                    p.sendTitle("[HS]","[!] SPECTATOR MODE [!]",1,60,1);
                     p.sendMessage(ChatColor.GRAY + "SPECTATOR MODE : Type /hsleave to leave the game");
                     p.setGameMode(GameMode.SPECTATOR);
                 }else {
@@ -205,15 +216,21 @@ public class Game extends BukkitRunnable {
                 }
                 p.setInvulnerable(false);
                 p.getInventory().clear();
+                //p.getActivePotionEffects().clear();
+                for (PotionEffect effect : p.getActivePotionEffects()) {
+                    p.removePotionEffect(effect.getType());
+                    PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect();
+                }
                 HideAndSeek.loadinv(p);
                 return true;
 
             } else if (t2.players.contains(p)) {
                 t2.remPlayer(p.getName());
-                announcement(ChatColor.RED + "[-S]" + p.getName());
+                announcement(ChatColor.RED + "[-S]" + p.getName(),false);
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setInvulnerable(false);
                 p.getInventory().clear();
+                //p.getActivePotionEffects().clear();
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
                 }
@@ -230,23 +247,28 @@ public class Game extends BukkitRunnable {
         return false;
     }
 
-    public void announcement(String msg){
+    public void announcement(String msg,boolean title){
         t1.chat(msg);
         t2.chat(msg);
+        if(title){
+            for(Player p : players){
+                p.sendTitle("[HS]",msg,1,60,1);
+            }
+        }
     }
 
     public void hidersVictory() throws FileNotFoundException {
-        announcement(ChatColor.GOLD + "The hiders won ! Congratulations :\n");
+        announcement(ChatColor.GOLD + "The hiders won ! Congratulations :\n",false);
         for(Player p : t1.players){
-            announcement(ChatColor.DARK_GREEN + p.getName() + "\n");
+            announcement(ChatColor.DARK_GREEN + p.getName() + "\n",false);
         }
         main.cancelGame(nb+1);
     }
 
     public void seekersVictory() throws FileNotFoundException {
-        announcement(ChatColor.GOLD + "The seekers won ! Congratulations :\n");
+        announcement(ChatColor.GOLD + "The seekers won ! Congratulations :\n",false);
         for(Player p : t2.players){
-            announcement(ChatColor.RED + p.getName() + "\n");
+            announcement(ChatColor.RED + p.getName() + "\n",false);
         }
         main.cancelGame(nb+1);
     }

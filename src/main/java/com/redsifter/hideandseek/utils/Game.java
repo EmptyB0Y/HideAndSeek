@@ -72,7 +72,9 @@ public class Game extends BukkitRunnable {
         }
         if(time == timeset - 60){
             announcement(ChatColor.DARK_RED + "[!]SEEKERS ARE UNLEASHED[!]",false);
-            announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]",false);
+            if(mode == "normal") {
+                announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]", false);
+            }
         }
         if(time == timeset/2){
             announcement(ChatColor.GOLD + "[!]THE TIMER IS HALFWAY DONE[!]",false);
@@ -219,7 +221,6 @@ public class Game extends BukkitRunnable {
                 //p.getActivePotionEffects().clear();
                 for (PotionEffect effect : p.getActivePotionEffects()) {
                     p.removePotionEffect(effect.getType());
-                    PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect();
                 }
                 HideAndSeek.loadinv(p);
                 return true;

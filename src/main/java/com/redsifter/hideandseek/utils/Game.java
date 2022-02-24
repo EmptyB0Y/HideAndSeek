@@ -72,7 +72,7 @@ public class Game extends BukkitRunnable {
         }
         if(time == timeset - 60){
             announcement(ChatColor.DARK_RED + "[!]SEEKERS ARE UNLEASHED[!]",false);
-            if(mode == "normal") {
+            if(mode.equals("normal")) {
                 announcement(ChatColor.GOLD + "[!]THE MYSTERY CHESTS ARE AVAILABLE[!]", false);
             }
         }

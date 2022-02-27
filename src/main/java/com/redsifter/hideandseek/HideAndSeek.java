@@ -5,15 +5,10 @@ import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.CustomTeam;
 import net.md_5.bungee.api.chat.*;
-import net.minecraft.network.chat.IChatMutableComponent;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
-import net.minecraft.network.chat.ChatMessageType;
-import net.minecraft.server.v1_16_R3.Packet;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,12 +17,10 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.Team;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.UUID;
 
 public final class HideAndSeek extends JavaPlugin {
 

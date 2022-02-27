@@ -20,10 +20,10 @@ public class CustomTeam {
         nb = number;
         name = nm;
         ChatColor color = ChatColor.GOLD;
-        if(name.equals("hiders")){
+        if(name.equals("HIDERS")){
             color = ChatColor.DARK_GREEN;
         }
-        else if(name.equals("seekers")){
+        else if(name.equals("SEEKERS")){
             color = ChatColor.RED;
         }
         ch = new Channel(nm,color);

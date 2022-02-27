@@ -1,15 +1,12 @@
 package com.redsifter.hideandseek.utils;
 
 import com.redsifter.hideandseek.HideAndSeek;
-import net.minecraft.server.v1_16_R3.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
 
 public class CustomTeam {
     public ArrayList<Player> players = new ArrayList<Player>();
@@ -18,7 +15,6 @@ public class CustomTeam {
     public Channel ch;
     public String name;
     public boolean full = false;
-    public Map<ArrayList<UUID>,EntityArmorStand> hiddenmap = new HashMap<ArrayList<UUID>,EntityArmorStand>();
 
     public CustomTeam(int number, String nm){
         nb = number;

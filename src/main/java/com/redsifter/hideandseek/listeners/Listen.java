@@ -1,6 +1,5 @@
 package com.redsifter.hideandseek.listeners;
 
-import com.destroystokyo.paper.Title;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
@@ -14,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -64,6 +64,9 @@ public class Listen implements Listener {
                         pl.sendMessage(ChatColor.DARK_PURPLE + "You found " + target.getName() + " !\n");
                         target.sendMessage(ChatColor.RED + "You were found by " + pl.getName() + " !\n");
                         removeFromGame((Player)target,true);
+                        //Event called
+                        CustomEventHs ev = new CustomEventHs("SeekerFoundHider",pl);
+                        Bukkit.getServer().getPluginManager().callEvent(ev);
                     }
                 } else if (target instanceof ArmorStand) {
                     if (target.getName().equals(ChatColor.GOLD + "[?]") && chestsAreAvailableFor(pl)) {
@@ -71,6 +74,9 @@ public class Listen implements Listener {
                         useChest((ArmorStand) target);
                         target.getWorld().playSound(target.getLocation(), Sound.BLOCK_CHAIN_BREAK,5,5);
                         target.getWorld().spawnParticle(Particle.SMOKE_LARGE,target.getLocation(),5);
+                        //Event called
+                        CustomEventHs ev = new CustomEventHs("MysteryChestUse",pl);
+                        Bukkit.getServer().getPluginManager().callEvent(ev);
                     }
                 }
             }
@@ -84,6 +90,9 @@ public class Listen implements Listener {
                             for(Player s : g.t2.players){
                                 s.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 s.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
+                                //Event called
+                                CustomEventHs ev = new CustomEventHs("ThermoSignalHider",pl);
+                                Bukkit.getServer().getPluginManager().callEvent(ev);
                             }
                         }
                         else{
@@ -92,6 +101,9 @@ public class Listen implements Listener {
                                 h.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 h.sendMessage(ChatColor.RED + "[!] POSITON EXPOSED [!]");
                                 h.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
+                                //Event called
+                                CustomEventHs ev = new CustomEventHs("ThermoSignalSeeker",pl);
+                                Bukkit.getServer().getPluginManager().callEvent(ev);
                             }
                         }
                     }
@@ -109,9 +121,15 @@ public class Listen implements Listener {
                     if(gameHit(p,(Player)event.getEntity().getShooter())){
                         if(event.getEntity() instanceof SpectralArrow) {
                             p.addPotionEffect(PotionEffectType.GLOWING.createEffect(100, 1));
+                            //Event called
+                            CustomEventHs ev = new CustomEventHs("SpectralArrowHit",(Player)event.getEntity().getShooter());
+                            Bukkit.getServer().getPluginManager().callEvent(ev);
                         }
                         else{
                             p.addPotionEffect(PotionEffectType.SLOW.createEffect(100, 5));
+                            //Event called
+                            CustomEventHs ev = new CustomEventHs("SlownessArrowHit",(Player)event.getEntity().getShooter());
+                            Bukkit.getServer().getPluginManager().callEvent(ev);
                         }
                     }
                 }
@@ -218,6 +236,9 @@ public class Listen implements Listener {
                     if (g != null) {
                         if (g.players.contains(event.getPlayer())) {
                             event.getPlayer().teleport(g.zone);
+                            //Event called
+                            CustomEventHs ev = new CustomEventHs("PlayerTripped",event.getPlayer());
+                            Bukkit.getServer().getPluginManager().callEvent(ev);
                         }
                     }
                 }
@@ -255,6 +276,9 @@ public class Listen implements Listener {
         if (p.getInventory().contains(Material.GLASS_BOTTLE)) {
             p.getInventory().remove(Material.GLASS_BOTTLE);
         }
+        if (p.getInventory().contains(Material.CROSSBOW) && (!p.getInventory().contains(Material.SPECTRAL_ARROW) && !p.getInventory().contains(Material.ARROW))) {
+            p.getInventory().remove(Material.CROSSBOW);
+        }
         if (0 <= b && b <= 7) {
             p.sendMessage(ChatColor.DARK_PURPLE + "[ENDERPEARL]");
             p.sendMessage(ChatColor.ITALIC + "[?]THROW : Teleports you to the landing location");
@@ -264,14 +288,14 @@ public class Listen implements Listener {
             p.sendMessage(ChatColor.YELLOW + "[SPECTRAL ARROWS]");
             p.sendMessage(ChatColor.ITALIC + "[?]SHOOT : The person you shot will glow for a small amount of time");
             p.sendMessage(ChatColor.ITALIC + "[!]Works only on opposing team members");
-            if (p.getInventory().contains(Material.CROSSBOW)) {
-                p.getInventory().remove(Material.CROSSBOW);
+            if(!p.getInventory().contains(Material.CROSSBOW)) {
+                ItemStack crossbow = new ItemStack(Material.CROSSBOW);
+                ItemMeta meta = crossbow.getItemMeta();
+                meta.addEnchant(Enchantment.QUICK_CHARGE, 5, true);
+                meta.setUnbreakable(true);
+                crossbow.setItemMeta(meta);
+                p.getInventory().addItem(crossbow);
             }
-            ItemStack crossbow = new ItemStack(Material.CROSSBOW);
-            ItemMeta meta = crossbow.getItemMeta();
-            meta.addEnchant(Enchantment.QUICK_CHARGE,5,true);
-            crossbow.setItemMeta(meta);
-            p.getInventory().addItem(crossbow);
             p.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 5));
         }
         else if (19 < b && b <= 25) {
@@ -340,14 +364,14 @@ public class Listen implements Listener {
             p.sendMessage(ChatColor.DARK_GRAY + "[SLOWNESS ARROWS]");
             p.sendMessage(ChatColor.ITALIC + "[?]SHOOT : The person you shot will be slowed for a small amount of time");
             p.sendMessage(ChatColor.ITALIC + "[!]Works only on opposing team members");
-            if (p.getInventory().contains(Material.CROSSBOW)) {
-                p.getInventory().remove(Material.CROSSBOW);
+            if (!p.getInventory().contains(Material.CROSSBOW)) {
+                ItemStack crossbow = new ItemStack(Material.CROSSBOW);
+                ItemMeta meta = crossbow.getItemMeta();
+                meta.addEnchant(Enchantment.QUICK_CHARGE, 5, true);
+                meta.setUnbreakable(true);
+                crossbow.setItemMeta(meta);
+                p.getInventory().addItem(crossbow);
             }
-            ItemStack crossbow = new ItemStack(Material.CROSSBOW);
-            ItemMeta meta = crossbow.getItemMeta();
-            meta.addEnchant(Enchantment.QUICK_CHARGE,5,true);
-            crossbow.setItemMeta(meta);
-            p.getInventory().addItem(crossbow);
             p.getInventory().addItem(new ItemStack(Material.ARROW, 3));
         }
     }

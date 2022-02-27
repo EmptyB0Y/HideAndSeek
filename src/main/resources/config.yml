@@ -1,0 +1,12 @@
+#The max number of players per teams
+MAXPLAYERS : 10
+#The max number of games playable at the same time
+MAXNUMBER : 3
+#The min amount of time a game can start at
+MINTIME : 200
+#The max amount of time a game can start at
+MAXTIME : 1060
+#The min limit in blocks a game perimeter can be defined at
+MINLIMIT : 120
+#The max limit in blocks a game perimeter can be defined at
+MAXLIMIT : 300

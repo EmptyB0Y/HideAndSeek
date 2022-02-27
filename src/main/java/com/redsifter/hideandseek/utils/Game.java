@@ -1,8 +1,6 @@
 package com.redsifter.hideandseek.utils;
 import com.redsifter.hideandseek.HideAndSeek;
 
-import net.minecraft.server.v1_16_R3.PacketPlayOutAbilities;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityEffect;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -172,26 +170,49 @@ public class Game extends BukkitRunnable {
         if(t.equals("h")){
             if(!t1.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t1.full) {
-                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName(), false);
                     t1.addPlayer(p);
                     players.add(p);
+                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName(), false);
                     return true;
-                }
-                else{
-                    return false;
                 }
             }
         }
         else if(t.equals("s")){
             if(!t2.players.contains(p) && ((t2.players.size() - t1.players.size()) <= 3 || (t2.players.size() - t1.players.size() >= -3))){
                 if(!t2.full) {
-                    announcement(ChatColor.RED + "[+S]"+p.getName(),false);
                     t2.addPlayer(p);
                     players.add(p);
+                    announcement(ChatColor.RED + "[+S]"+p.getName(),false);
                     return true;
                 }
-                else{
-                    return false;
+            }
+        }
+        else if(t.equals("r")){
+            if(t2.players.size() >= t1.players.size()){
+                if(!t1.full) {
+                    t1.addPlayer(p);
+                    players.add(p);
+                    announcement(ChatColor.DARK_GREEN + "[+H]"+p.getName(), false);
+                    return true;
+                }
+            }
+            else{
+                double r = HideAndSeek.randDouble(1, 10);
+                if(r < 5.5) {
+                    if (!t1.full) {
+                        t1.addPlayer(p);
+                        players.add(p);
+                        announcement(ChatColor.DARK_GREEN + "[+H]" + p.getName(), false);
+                        return true;
+                    }
+                }
+                else {
+                    if(!t2.full) {
+                        t2.addPlayer(p);
+                        players.add(p);
+                        announcement(ChatColor.RED + "[+S]"+p.getName(),false);
+                        return true;
+                    }
                 }
             }
         }

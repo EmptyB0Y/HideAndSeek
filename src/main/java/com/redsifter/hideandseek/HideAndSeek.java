@@ -4,10 +4,16 @@ import com.redsifter.hideandseek.listeners.Listen;
 import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.CustomTeam;
+import net.md_5.bungee.api.chat.*;
+import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.protocol.game.PacketPlayOutChat;
+import net.minecraft.network.chat.ChatMessageType;
+import net.minecraft.server.v1_16_R3.Packet;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,23 +27,75 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 public final class HideAndSeek extends JavaPlugin {
 
     public static int MAXPLAYERS = 10;
-    public static int MAXSIZE = 3;
-    public static Game[] games = new Game[MAXSIZE];
+    public static int MAXNUMBER = 3;
+    public static int MINTIME = 200;
+    public static int MAXTIME = 1060;
+    public static int MINLIMIT = 120;
+    public static int MAXLIMIT = 300;
+    public static Game[] games = new Game[MAXNUMBER];
     public static FileManager fm;
+    public static FileManager config;
 
     @Override
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(new Listen(this), this);
         getDataFolder().mkdir();
         try {
-            fm =  new FileManager();
+            fm =  new FileManager("inventories.yml");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //Initializing config
+        this.getLogger().info("Initializing config");
+        this.saveDefaultConfig();
+
+        if(this.getConfig().contains("MAXPLAYERS")){
+            if(this.getConfig().get("MAXPLAYERS") != null) {
+                MAXPLAYERS = this.getConfig().getInt("MAXPLAYERS");
+            }
+        }
+        this.getLogger().info("MAXPLAYERS : "+MAXPLAYERS);
+
+        if(this.getConfig().contains("MAXNUMBER")){
+            if(this.getConfig().get("MAXNUMBER") != null) {
+                MAXNUMBER = this.getConfig().getInt("MAXNUMBER");
+            }
+        }
+        this.getLogger().info("MAXNUMBER : "+MAXNUMBER);
+
+        if(this.getConfig().contains("MINTIME")){
+            if(this.getConfig().get("MINTIME") != null) {
+                MINTIME = this.getConfig().getInt("MINTIME");
+            }
+        }
+        this.getLogger().info("MINTIME : "+MINTIME);
+
+        if(this.getConfig().contains("MAXTIME")){
+            if(this.getConfig().get("MAXTIME") != null) {
+                MAXTIME = this.getConfig().getInt("MAXTIME");
+            }
+        }
+        this.getLogger().info("MAXTIME : "+MAXTIME);
+
+        if(this.getConfig().contains("MINLIMIT")){
+            if(this.getConfig().get("MINLIMIT") != null) {
+                MINLIMIT = this.getConfig().getInt("MINLIMIT");
+            }
+        }
+        this.getLogger().info("MINLIMIT: "+MINLIMIT);
+
+        if(this.getConfig().contains("MAXLIMIT")){
+            if(this.getConfig().get("MAXLIMIT") != null) {
+                MAXLIMIT = this.getConfig().getInt("MAXLIMIT");
+            }
+        }
+        this.getLogger().info("MAXLIMIT : "+MAXLIMIT);
+
     }
 
     @Override
@@ -61,22 +119,20 @@ public final class HideAndSeek extends JavaPlugin {
                         sender.sendMessage("Too much arguments...\n");
                         return false;
                     }
-                    if (countGames() == MAXSIZE) {
+                    if (countGames() == MAXNUMBER) {
                         sender.sendMessage("Too much games started at this time...\n");
                         return false;
                     }
                     //ADD TEAMS
-                    CustomTeam t1 = new CustomTeam(1, "hiders");
-                    CustomTeam t2 = new CustomTeam(2, "seekers");
+                    CustomTeam t1 = new CustomTeam(1, "HIDERS");
+                    CustomTeam t2 = new CustomTeam(2, "SEEKERS");
 
-                    /*if (!areaAvailableFor(((Player) sender).getLocation(), (t2.players.size() + t1.players.size()) * 30, (Player) sender)) {
-                        return false;
-                    }*/
                     //INITALIZE GAME
                     int game = 0;
                     if (countGames() > 0) {
                         game = countGames() + 1;
                     }
+
                     games[game] = new Game(t1, t2, game, (Player) sender, this);
                     if(args.length > 0) {
                         if(args[0].equals("predator")){
@@ -87,7 +143,33 @@ public final class HideAndSeek extends JavaPlugin {
                     }
 
                     sender.sendMessage("You initalized game n° " + countGames() + " !\n");
+                    TextComponent rand = new TextComponent("[JOIN AS RANDOM]");
+                    rand.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+                    rand.setBold(true);
+                    rand.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/hsjoin "+(game+1)+" r"));
+                    TextComponent hider = new TextComponent("[JOIN AS HIDER]");
+                    hider.setColor(net.md_5.bungee.api.ChatColor.DARK_GREEN);
+                    hider.setBold(true);
+                    hider.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/hsjoin "+(game+1)+" h"));
+                    TextComponent seeker = new TextComponent("[JOIN AS SEEKER]");
+                    seeker.setColor(net.md_5.bungee.api.ChatColor.RED);
+                    seeker.setBold(true);
+                    seeker.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/hsjoin "+(game+1)+" s"));
+                    TextComponent startgame = new TextComponent("[START GAME]");
+                    startgame.setColor(net.md_5.bungee.api.ChatColor.DARK_PURPLE);
+                    startgame.setBold(true);
+                    startgame.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/hsstartgame "+(game+1)+" 560 120"));
 
+                    for(Player pl : Bukkit.getOnlinePlayers()) {
+                        pl.sendMessage(ChatColor.GOLD+"A NEW GAME OF HIDE AND SEEK HAS BEEN SET BY "+ChatColor.DARK_PURPLE+sender.getName()+ChatColor.GOLD+" :");
+                        pl.sendMessage(rand);
+                        pl.sendMessage(hider);
+                        pl.sendMessage(seeker);
+                    }
+                    sender.sendMessage(ChatColor.DARK_PURPLE+"}-----------{");
+                    sender.sendMessage(startgame);
+                    sender.sendMessage("(default value hsstartgame "+(game+1)+" 560 120)");
+                    sender.sendMessage(ChatColor.DARK_PURPLE+"}-----------{");
                     break;
                 case "hsjoin":
                     if (args.length < 1) {
@@ -95,72 +177,91 @@ public final class HideAndSeek extends JavaPlugin {
                         return false;
                     } else if (args.length == 2) {
 
-                        if (Integer.parseInt(args[1]) > 3 || Integer.parseInt(args[1]) < 1) {
-                            sender.sendMessage("Not a valid game number (1 to "+MAXSIZE+")\n");
+                        if (Integer.parseInt(args[0]) > MAXNUMBER || Integer.parseInt(args[0]) < 1) {
+                            sender.sendMessage("Not a valid game number (1 to "+MAXNUMBER+")\n");
                             return false;
                         }
 
                         Player p = (Player) sender;
-                        if (games[(Integer.parseInt(args[1]) - 1)] == null) {
+                        if (games[(Integer.parseInt(args[0]) - 1)] == null) {
                             return false;
                         }
-                        if (!games[(Integer.parseInt(args[1]) - 1)].hasStarted && !games[(Integer.parseInt(args[1]) - 1)].full && !games[(Integer.parseInt(args[1]) - 1)].players.contains(p)) {
-                            if (args[0].equals("h")) {
-                                if (games[(Integer.parseInt(args[1]) - 1)].addPlayer((Player) sender, "h")) {
-                                    sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1])].nb + " as hider !\n");
+                        if (!games[(Integer.parseInt(args[0]) - 1)].hasStarted && !games[(Integer.parseInt(args[0]) - 1)].full && !games[(Integer.parseInt(args[0]) - 1)].players.contains(p)) {
+                            if (args[1].equals("h")) {
+                                if (games[(Integer.parseInt(args[0]) - 1)].addPlayer((Player) sender, "h")) {
+                                    sender.sendMessage("Successfuly joined game n° " + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " as hider !\n");
                                     return true;
                                 }
-                            } else if (args[0].equals("s")) {
-                                if (games[(Integer.parseInt(args[1]) - 1)].addPlayer((Player) sender, "s")) {
-                                    sender.sendMessage("Successfuly joined game n° " + games[Integer.parseInt(args[1])].nb + " as seeker !\n");
+                                else {
+                                    sender.sendMessage("Failed to join game n° " + (games[(Integer.parseInt(args[0]) - 1)].nb + 1) + "...");
+                                }
+                            } else if (args[1].equals("s")) {
+                                if (games[(Integer.parseInt(args[0]) - 1)].addPlayer((Player) sender, "s")) {
+                                    sender.sendMessage("Successfuly joined game n° " + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " as seeker !\n");
                                     return true;
+                                }
+                                else {
+                                    sender.sendMessage("Failed to join game n° " + (games[(Integer.parseInt(args[0]) - 1)].nb + 1) + "...");
                                 }
                             }
-                        } else {
+                            else if (args[1].equals("r")) {
+                                if (games[(Integer.parseInt(args[0]) - 1)].addPlayer((Player) sender, "r")) {
+                                    sender.sendMessage("Successfuly joined game n°" + (games[(Integer.parseInt(args[0]) - 1)].nb + 1) + " as random !\n");
+                                    return true;
+                                }
+                                else {
+                                    sender.sendMessage("Failed to join game n° " + (games[(Integer.parseInt(args[0]) - 1)].nb + 1) + "...");
+                                }
+                            }
+
+                        }
+                        else {
                             sender.sendMessage(ChatColor.RED + "This game either has already started, is not set, or has no more room for you in the selected team !\n");
                             return false;
                         }
                     } else if (args.length == 1) {
                         Player p = (Player) sender;
                         if (countGames() >= 1) {
-
-                            if (args[0].equals("h")) {
-                                for (Game g : games) {
-                                    if (g != null) {
-                                        if (!g.hasStarted && !g.full && !g.players.contains(p)) {
-
+                            for (Game g : games) {
+                                if (g != null) {
+                                    if (!g.hasStarted && !g.full && !g.players.contains(p)) {
+                                        if (args[0].equals("h")) {
                                             if (g.addPlayer((Player) sender, "h")) {
                                                 sender.sendMessage("Successfuly joined game n° " + (g.nb + 1) + " as hider !\n");
                                                 return true;
-                                            } else {
+                                            }
+                                            else {
                                                 sender.sendMessage("Failed to join game n° " + (g.nb + 1) + "...");
                                             }
 
                                         }
-                                    }
-                                }
-                                sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
-                                return false;
-
-                            } else if (args[0].equals("s")) {
-                                for (Game g : games) {
-                                    if (g != null) {
-                                        if (!g.hasStarted && !g.full && !g.players.contains(p)) {
+                                        else if (args[0].equals("s")) {
 
                                             if (g.addPlayer((Player) sender, "s")) {
                                                 sender.sendMessage("Successfuly joined game n°" + (g.nb + 1) + " as seeker !\n");
                                                 return true;
-                                            } else {
+                                            }
+                                            else {
                                                 sender.sendMessage("Failed to join game n° " + (g.nb + 1) + "...");
                                             }
                                         }
+                                        else if (args[0].equals("r")) {
+                                            if (g.addPlayer((Player) sender, "r")) {
+                                                sender.sendMessage("Successfuly joined game n°" + (g.nb + 1) + " as random !\n");
+                                                return true;
+                                            }
+                                            else {
+                                                sender.sendMessage("Failed to join game n° " + (g.nb + 1) + "...");
+                                            }
+                                        }
+                                        else {
+                                            sender.sendMessage("Choose between [h] (hider), [s] (seeker) and [r] (random)\n");
+                                        }
                                     }
                                 }
-                                sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
-                                return false;
-                            } else {
-                                sender.sendMessage("Choose between [h] (hider) and [s] (seekers)\n");
                             }
+                            sender.sendMessage("Failed to join any games so far, try /hslistgames to see available games.\n");
+                            return false;
                         }
                     } else {
                         sender.sendMessage("Usage : hsjoin <(h | s)> [n°]");
@@ -198,12 +299,16 @@ public final class HideAndSeek extends JavaPlugin {
                     if (args.length < 3) {
                         sender.sendMessage("Missing arguments...\n");
                         return false;
-                    } else if (Integer.parseInt(args[1]) < 200 || Integer.parseInt(args[1]) > 1060) {
-                        sender.sendMessage("The time must be contained between 200 and 1060\n");
+                    }
+                    else if (Integer.parseInt(args[1]) < MINTIME || Integer.parseInt(args[1]) > MAXTIME) {
+                        sender.sendMessage("The timer must be contained between "+MINTIME+" and "+MAXTIME);
                         return false;
                     }
-                    if (Integer.parseInt(args[2]) < 120 || Integer.parseInt(args[2]) > 480) {
-                        sender.sendMessage("The limit must be contained between 120 and 560\n");
+                    if (Integer.parseInt(args[2]) < MINLIMIT || Integer.parseInt(args[2]) > MAXLIMIT) {
+                        sender.sendMessage("The limit must be contained between "+MINLIMIT+ " and "+MAXLIMIT);
+                        return false;
+                    }
+                    else if(!areaAvailableFor(games[Integer.parseInt(args[0]) - 1].zone,Integer.parseInt(args[2]),(Player) sender)){
                         return false;
                     }
                     if (countGames() >= 1) {
@@ -217,7 +322,7 @@ public final class HideAndSeek extends JavaPlugin {
                                 return false;
                             } else {
                                 sender.sendMessage("Successfully started game n°" + (games[Integer.parseInt(args[0]) - 1].nb + 1) + " !\n");
-                                if(games[Integer.parseInt(args[0]) - 1].mode == "normal") {
+                                if(games[Integer.parseInt(args[0]) - 1].mode.equals("normal")) {
                                     setMysteryChests(games[Integer.parseInt(args[0]) - 1], true);
                                 }
                             }
@@ -431,11 +536,11 @@ public final class HideAndSeek extends JavaPlugin {
         }
     }
 
-    public boolean areaAvailableFor(Location l, int size, @Nullable Player p){
+    public boolean areaAvailableFor(Location l, int size, Player p){
         for(Game g : games) {
             if(g != null) {
-                if (l.distance(g.zone) <= size + g.SIZE) {
-                    p.sendMessage("There is no room for a game here ! Try to get a bit further from " + g.zone.getX() + " " + g.zone.getY() + " "  + g.zone.getZ());
+                if (l.distance(g.zone) <= size + g.SIZE && g.owner != p) {
+                    p.sendMessage("There is no room for a game here ! Try to get a bit further from " + g.zone.getX() + " " + g.zone.getY() + " " + g.zone.getZ());
                     return false;
                 }
             }

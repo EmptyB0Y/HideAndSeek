@@ -1,6 +1,7 @@
 package com.redsifter.hideandseek.utils;
 import com.redsifter.hideandseek.HideAndSeek;
 
+import com.redsifter.hideandseek.listeners.CustomEventHs;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -283,6 +284,9 @@ public class Game extends BukkitRunnable {
         announcement(ChatColor.GOLD + "The hiders won ! Congratulations :\n",false);
         for(Player p : t1.players){
             announcement(ChatColor.DARK_GREEN + p.getName() + "\n",false);
+            //Event called
+            CustomEventHs ev = new CustomEventHs("TeamWin",p);
+            Bukkit.getServer().getPluginManager().callEvent(ev);
         }
         main.cancelGame(nb+1);
     }
@@ -291,6 +295,9 @@ public class Game extends BukkitRunnable {
         announcement(ChatColor.GOLD + "The seekers won ! Congratulations :\n",false);
         for(Player p : t2.players){
             announcement(ChatColor.RED + p.getName() + "\n",false);
+            //Event called
+            CustomEventHs ev = new CustomEventHs("TeamWin",p);
+            Bukkit.getServer().getPluginManager().callEvent(ev);
         }
         main.cancelGame(nb+1);
     }

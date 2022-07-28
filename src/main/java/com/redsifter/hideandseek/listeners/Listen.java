@@ -1,8 +1,9 @@
 package com.redsifter.hideandseek.listeners;
 
-import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.utils.Game;
+
+import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -13,7 +14,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -38,11 +38,11 @@ public class Listen implements Listener {
             if(g != null) {
                 if (g.t1.players.contains(pl)) {
                     event.setCancelled(true);
-                    g.t1.chat(event.getMessage());
+                    g.t1.chat(event.getPlayer().getName(),event.getMessage());
                 }
                 else if (g.t2.players.contains(pl)) {
                     event.setCancelled(true);
-                    g.t2.chat(event.getMessage());
+                    g.t2.chat(event.getPlayer().getName(),event.getMessage());
                 }
                 else if(g.specs.contains(pl)){
                     event.setCancelled(true);
@@ -86,7 +86,7 @@ public class Listen implements Listener {
                 for(Game g : HideAndSeek.games){
                     if(g != null){
                         if(g.t1.players.contains(pl)){
-                            g.t1.chat(ChatColor.GREEN + pl.getName() + " has exposed the seekers's positions via thermo-signal");
+                            g.t1.chat("[!]",ChatColor.GREEN + pl.getName() + " has exposed the seekers's positions via thermo-signal");
                             for(Player s : g.t2.players){
                                 s.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 s.addPotionEffect(PotionEffectType.GLOWING.createEffect(200,1));
@@ -96,7 +96,7 @@ public class Listen implements Listener {
                             }
                         }
                         else{
-                            g.t2.chat(ChatColor.GREEN + pl.getName() + " has exposed the hiders's positions via thermo-signal");
+                            g.t2.chat("[!]",ChatColor.GREEN + pl.getName() + " has exposed the hiders's positions via thermo-signal");
                             for(Player h : g.t1.players){
                                 h.sendTitle(ChatColor.RED + "[!] POSITON EXPOSED [!]","",1,20,1);
                                 h.sendMessage(ChatColor.RED + "[!] POSITON EXPOSED [!]");

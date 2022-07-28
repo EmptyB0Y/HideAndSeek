@@ -1,7 +1,8 @@
 package com.redsifter.hideandseek.utils;
-import com.redsifter.hideandseek.HideAndSeek;
 
+import com.redsifter.hideandseek.HideAndSeek;
 import com.redsifter.hideandseek.listeners.CustomEventHs;
+
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -271,8 +272,8 @@ public class Game extends BukkitRunnable {
     }
 
     public void announcement(String msg,boolean title){
-        t1.chat(msg);
-        t2.chat(msg);
+        t1.chat("[ANNOUNCEMENT]",msg);
+        t2.chat("[ANNOUNCEMENT]",msg);
         if(title){
             for(Player p : players){
                 p.sendTitle("[HS]",msg,1,60,1);

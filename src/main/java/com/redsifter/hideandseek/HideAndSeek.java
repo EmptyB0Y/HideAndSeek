@@ -4,6 +4,7 @@ import com.redsifter.hideandseek.listeners.Listen;
 import com.redsifter.hideandseek.utils.FileManager;
 import com.redsifter.hideandseek.utils.Game;
 import com.redsifter.hideandseek.utils.CustomTeam;
+
 import net.md_5.bungee.api.chat.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
@@ -32,7 +33,6 @@ public final class HideAndSeek extends JavaPlugin {
     public static int MAXLIMIT = 300;
     public static Game[] games = new Game[MAXNUMBER];
     public static FileManager fm;
-    public static FileManager config;
 
     @Override
     public void onEnable() {
@@ -161,7 +161,7 @@ public final class HideAndSeek extends JavaPlugin {
                     }
                     sender.sendMessage(ChatColor.DARK_PURPLE+"}-----------{");
                     sender.sendMessage(startgame);
-                    sender.sendMessage("(default value hsstartgame "+(game+1)+" 560 120)");
+                    sender.sendMessage("(default value : hsstartgame "+(game+1)+" 560 120)");
                     sender.sendMessage(ChatColor.DARK_PURPLE+"}-----------{");
                     break;
                 case "hsjoin":

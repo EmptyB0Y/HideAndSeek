@@ -69,7 +69,7 @@ public class CustomTeam {
         ch.flush();
     }
 
-    public void chat(String msg){
-        ch.broadcast(msg);
+    public void chat(String name,String msg){
+        ch.broadcast(name+":"+msg);
     }
 }

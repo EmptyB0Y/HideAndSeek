@@ -274,6 +274,7 @@ public class Game extends BukkitRunnable {
     public void announcement(String msg,boolean title){
         t1.chat("[ANNOUNCEMENT]",msg);
         t2.chat("[ANNOUNCEMENT]",msg);
+        spectator.broadcast("[ANNOUNCEMENT] " + msg);
         if(title){
             for(Player p : players){
                 p.sendTitle("[HS]",msg,1,60,1);

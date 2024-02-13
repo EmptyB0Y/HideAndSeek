@@ -342,8 +342,8 @@ public class Listen implements Listener {
         }
         else if (29 < b && b <= 32) {
             p.sendMessage(ChatColor.GRAY + "[STEALTH POTION]");
-            p.sendMessage(ChatColor.ITALIC + "[?]DRINK : Makes you invisible");
-            ItemStack potion = new ItemStack(Material.POTION, 1);
+            p.sendMessage(ChatColor.ITALIC + "[?]SPLASH : Makes you invisible");
+            ItemStack potion = new ItemStack(Material.SPLASH_POTION, 1);
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
             meta.addCustomEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 250, 1), true);
             meta.setDisplayName(ChatColor.GRAY + "STEALTH");
